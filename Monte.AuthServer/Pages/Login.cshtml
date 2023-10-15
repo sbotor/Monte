@@ -1,0 +1,18 @@
+@page
+@model Monte.AuthServer.Pages.Login
+
+@{
+    Layout = "Shared/_Layout";
+}
+
+<form method="POST">
+    <span>
+        <input asp-for="Username"/>
+        <label asp-for="Username">Username</label>
+    </span>
+    <span>
+        <input asp-for="Password" type="password"/>
+        <label asp-for="Password">Password</label>
+    </span>
+    <button type="submit">Login</button>
+</form>

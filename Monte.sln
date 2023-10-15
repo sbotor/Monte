@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Monte.AuthServer", "Monte.AuthServer\Monte.AuthServer.csproj", "{C8C0A9C6-B985-4542-A1FD-FB0662205452}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Monte.WebApi", "Monte.WebApi\Monte.WebApi.csproj", "{9A465115-A28E-45EF-AE43-040FD7ECC12F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Monte", "Monte\Monte.csproj", "{42C9F0BE-19E1-4386-9D41-D99A5DFF92B0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C8C0A9C6-B985-4542-A1FD-FB0662205452}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C8C0A9C6-B985-4542-A1FD-FB0662205452}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C8C0A9C6-B985-4542-A1FD-FB0662205452}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C8C0A9C6-B985-4542-A1FD-FB0662205452}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A465115-A28E-45EF-AE43-040FD7ECC12F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A465115-A28E-45EF-AE43-040FD7ECC12F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A465115-A28E-45EF-AE43-040FD7ECC12F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A465115-A28E-45EF-AE43-040FD7ECC12F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42C9F0BE-19E1-4386-9D41-D99A5DFF92B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42C9F0BE-19E1-4386-9D41-D99A5DFF92B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42C9F0BE-19E1-4386-9D41-D99A5DFF92B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42C9F0BE-19E1-4386-9D41-D99A5DFF92B0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

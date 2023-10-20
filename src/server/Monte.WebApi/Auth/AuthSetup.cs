@@ -8,8 +8,8 @@ namespace Monte.WebApi.Auth;
 
 public static class AuthSetup
 {
-    public static string MonteMainApiPolicy = "MonteMainApi";
-    public static string MonteClientApiPolicy = "MonteClientApi";
+    public const string RequireMainApiScope = "MonteMainApi";
+    public const string RequireAgentApiScope = "MonteClientApi";
     
     public static void ConfigureAuth(this IServiceCollection services, IConfigurationRoot config)
     {
@@ -24,20 +24,30 @@ public static class AuthSetup
                 x.TokenValidationParameters = new()
                 {
                     ValidIssuer = settings.Issuer,
-                    ValidAudience = settings.Audience,
                     IssuerSigningKey = key,
                     ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateIssuerSigningKey = true
+                    ValidateAudience = false,
+                    ValidateIssuerSigningKey = true,
                 };
             });
 
         services.AddAuthorization(x =>
         {
+            x.AddPolicy(RequireMainApiScope, y => y.RequireScope("monte_main_api"));
+            x.AddPolicy(RequireAgentApiScope, y => y.RequireScope("monte_agent_api"));
+
+            x.DefaultPolicy = x.GetPolicy(RequireMainApiScope)!;
         });
     }
 
-    private static void RequireScope(this AuthorizationPolicyBuilder builder)
+    private static void RequireScope(this AuthorizationPolicyBuilder builder, string scope)
     {
+        builder.RequireAuthenticatedUser()
+            .RequireAssertion(ctx =>
+            {
+                var scopeClaim = ctx.User.FindFirst("scope");
+                return scopeClaim is not null
+                    && scopeClaim.Value.Split(' ').Any(x => x == scope);
+            });
     }
 }

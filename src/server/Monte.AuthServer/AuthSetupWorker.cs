@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Monte.AuthServer.Configuration;
 using Monte.AuthServer.Extensions;
@@ -19,7 +20,7 @@ public class AuthSetupWorker : IHostedService
         using var scope = _serviceProvider.CreateScope();
 
         var context = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
-        await context.Database.EnsureCreatedAsync(cancellationToken);
+        await context.Database.MigrateAsync(cancellationToken);
 
         var options = _serviceProvider.GetRequiredService<IOptions<AuthSettings>>();
 

@@ -47,15 +47,13 @@ public class AuthController : ControllerBase
 
         var claims = new Claim[]
         {
-            new(OpenIddictConstants.Claims.Subject, result.Principal.Identity?.Name
-                ?? throw new InvalidOperationException("No identity found."))
+            new(OpenIddictConstants.Claims.Subject, result.Principal.Identity!.Name!)
         };
 
         var identity = new ClaimsIdentity(claims, AuthSchemes.Token);
+        AddScopes(identity, request.GetScopes());
         var principal = new ClaimsPrincipal(identity);
 
-        var scopes = request.GetScopes();
-        principal.SetScopes(scopes);
 
         return SignIn(principal, AuthSchemes.Token);
     }
@@ -79,11 +77,10 @@ public class AuthController : ControllerBase
         else if (request.IsClientCredentialsGrantType())
         {
             var identity = new ClaimsIdentity(AuthSchemes.Token);
-
             identity.AddClaim(OpenIddictConstants.Claims.Subject, request.ClientId!);
-
+            
+            AddScopes(identity, request.GetScopes());
             principal = new ClaimsPrincipal(identity);
-            principal.SetScopes(request.GetScopes());
         }
         else
         {
@@ -111,4 +108,12 @@ public class AuthController : ControllerBase
                 RedirectUri = _settings.RedirectUri.ToString()
             },
             AuthSchemes.Cookie);
+
+    private static void AddScopes(ClaimsIdentity identity, IEnumerable<string> scopes)
+    {
+        var joined = string.Join(' ', scopes);
+        var claim = new Claim(OpenIddictConstants.Claims.Scope, joined);
+        claim.SetDestinations(OpenIddictConstants.Destinations.AccessToken);
+        identity.AddClaim(claim);
+    }
 }

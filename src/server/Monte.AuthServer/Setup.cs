@@ -9,10 +9,9 @@ internal static class Setup
 {
     public static void RegisterServices(this IServiceCollection services, IConfigurationRoot config)
     {
-        var connectionString = config.GetConnectionString("Default");
         services.AddDbContext<AuthDbContext>(x =>
         {
-            x.UseSqlite(connectionString);
+            x.UseNpgsql(config.GetConnectionString("Default"));
             x.UseOpenIddict();
         });
         

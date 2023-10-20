@@ -8,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.ConfigureAuth(builder.Configuration);
 
-builder.Services.AddMonte<HttpUserContext>();
+builder.Services.AddMonte<HttpUserContext>(builder.Configuration);
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -30,5 +30,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+await app.MigrateDatabase();
 
 app.Run();

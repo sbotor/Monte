@@ -1,5 +1,6 @@
 using Monte;
 using Monte.WebApi;
+using Monte.WebApi.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 

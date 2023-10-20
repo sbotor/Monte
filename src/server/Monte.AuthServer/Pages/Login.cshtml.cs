@@ -15,9 +15,11 @@ public class Login : PageModel
     private readonly SignInManager<IdentityUser> _signInManager;
     private readonly AuthSettings _settings;
 
+    [FromForm]
     [Required]
     public string Username { get; set; } = null!;
 
+    [FromForm]
     [Required]
     public string Password { get; set; } = null!;
     

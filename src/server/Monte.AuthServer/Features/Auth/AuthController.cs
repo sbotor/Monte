@@ -54,7 +54,8 @@ public class AuthController : ControllerBase
         var identity = new ClaimsIdentity(claims, AuthSchemes.Token);
         var principal = new ClaimsPrincipal(identity);
 
-        principal.SetScopes(request.GetScopes());
+        var scopes = request.GetScopes();
+        principal.SetScopes(scopes);
 
         return SignIn(principal, AuthSchemes.Token);
     }
@@ -75,11 +76,20 @@ public class AuthController : ControllerBase
             
             principal = result.Principal;
         }
+        else if (request.IsClientCredentialsGrantType())
+        {
+            var identity = new ClaimsIdentity(AuthSchemes.Token);
+
+            identity.AddClaim(OpenIddictConstants.Claims.Subject, request.ClientId!);
+
+            principal = new ClaimsPrincipal(identity);
+            principal.SetScopes(request.GetScopes());
+        }
         else
         {
             throw new InvalidOperationException("Invalid grant type.");
         }
-
+        
         return SignIn(principal, AuthSchemes.Token);
     }
 

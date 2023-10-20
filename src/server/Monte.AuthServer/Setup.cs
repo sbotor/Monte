@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Monte.AuthServer.Configuration;
-using Monte.AuthServer.Helpers;
 
 namespace Monte.AuthServer;
 
@@ -51,7 +51,10 @@ internal static class Setup
             })
             .AddServer(x =>
             {
-                x.AllowAuthorizationCodeFlow();
+                x.AllowAuthorizationCodeFlow()
+                    .AllowClientCredentialsFlow();
+
+                x.AddSigningKey(new SymmetricSecurityKey("secret1234secret1234"u8.ToArray()));
                 
                 x.SetAuthorizationEndpointUris("connect/authorize")
                     .SetTokenEndpointUris("connect/token")
@@ -65,6 +68,8 @@ internal static class Setup
                 x.AddDevelopmentEncryptionCertificate()
                     .AddDevelopmentSigningCertificate()
                     .DisableAccessTokenEncryption();
+
+                x.RegisterScopes(OpenIddictConfig.GetScopeNames().ToArray());
 
                 x.UseAspNetCore()
                     .EnableAuthorizationEndpointPassthrough()

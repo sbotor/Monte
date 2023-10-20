@@ -5,14 +5,14 @@
     Layout = "Shared/_Layout";
 }
 
-<form method="POST">
+<form method="POST" style="display: flex; flex-direction: column;">
     <span>
-        <input asp-for="Username"/>
         <label asp-for="Username">Username</label>
+        <input asp-for="Username"/>
     </span>
     <span>
-        <input asp-for="Password" type="password"/>
         <label asp-for="Password">Password</label>
+        <input asp-for="Password" type="password"/>
     </span>
     <button type="submit">Login</button>
 </form>

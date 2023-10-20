@@ -1,12 +1,16 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using Monte.WebApi.Configuration;
 
-namespace Monte.WebApi;
+namespace Monte.WebApi.Auth;
 
 public static class AuthSetup
 {
+    public static string MonteMainApiPolicy = "MonteMainApi";
+    public static string MonteClientApiPolicy = "MonteClientApi";
+    
     public static void ConfigureAuth(this IServiceCollection services, IConfigurationRoot config)
     {
         var settings = config.GetSection(nameof(TokenSettings)).Get<TokenSettings>()
@@ -28,6 +32,12 @@ public static class AuthSetup
                 };
             });
 
-        services.AddAuthorization();
+        services.AddAuthorization(x =>
+        {
+        });
+    }
+
+    private static void RequireScope(this AuthorizationPolicyBuilder builder)
+    {
     }
 }

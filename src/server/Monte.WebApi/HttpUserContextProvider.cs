@@ -1,23 +1,23 @@
 namespace Monte.WebApi;
 
-public class HttpUserContext : IUserContext
+public class HttpUserContextProvider : IUserContextProvider
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    private UserInfo? _user;
+    private UserContext? _user;
 
-    public HttpUserContext(IHttpContextAccessor httpContextAccessor)
+    public HttpUserContextProvider(IHttpContextAccessor httpContextAccessor)
     {
         _httpContextAccessor = httpContextAccessor;
     }
     
-    public ValueTask<UserInfo> GetUser()
+    public ValueTask<UserContext> GetContext(CancellationToken cancellationToken = default)
     {
         _user ??= ExtractUser();
         return new(_user);
     }
 
-    private UserInfo ExtractUser()
+    private UserContext ExtractUser()
     {
         var httpContext = _httpContextAccessor.HttpContext;
         if (httpContext is null)

@@ -19,7 +19,7 @@ public static class GetMachines
 
         public Task<MachineOverview[]> Handle(Query request, CancellationToken cancellationToken)
             => _context.Machines.AsNoTracking()
-                .OrderBy(x => x.DisplayName)
+                .OrderBy(x => x.Name).ThenBy(x => x.OrdinalNumber)
                 .Select(x => new MachineOverview { Id = x.Id, DisplayName = x.DisplayName })
                 .ToArrayAsync(cancellationToken);
     }

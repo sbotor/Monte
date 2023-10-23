@@ -21,13 +21,16 @@ public static class OpenIddictConfig
     public static IEnumerable<string> GetScopeNames()
         => GetScopes().Select(x => x.Name!);
 
-    public static IEnumerable<OpenIddictApplicationDescriptor> GetApplications(AuthSettings settings)
+    public static IEnumerable<OpenIddictApplicationDescriptor> GetApplications(
+        AuthSettings settings,
+        OidcAppSettings appSettings)
     {
+        appSettings.Api.Validate("Invalid API OIDC config.");
         yield return new()
         {
             DisplayName = "Monte API",
-            ClientId = AuthConsts.ClientIds.MonteApi,
-            ClientSecret = AuthConsts.ClientSecrets.MonteApi,
+            ClientId = appSettings.Api.ClientId,
+            ClientSecret = appSettings.Api.ClientSecret,
             RedirectUris = { settings.RedirectUri },
             Type = OpenIddictConstants.ClientTypes.Confidential,
             Permissions =
@@ -45,11 +48,12 @@ public static class OpenIddictConfig
             }
         };
         
+        appSettings.Agent.Validate("Invalid Agent OIDC config.");
         yield return new()
         {
             DisplayName = "Monte Agent API",
-            ClientId = AuthConsts.ClientIds.MonteAgent,
-            ClientSecret = AuthConsts.ClientSecrets.MonteAgent,
+            ClientId = appSettings.Agent.ClientId,
+            ClientSecret = appSettings.Agent.ClientSecret,
             Type = OpenIddictConstants.ClientTypes.Confidential,
             Permissions =
             {

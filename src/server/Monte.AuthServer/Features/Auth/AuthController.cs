@@ -54,7 +54,6 @@ public class AuthController : ControllerBase
         AddScopes(identity, request.GetScopes());
         var principal = new ClaimsPrincipal(identity);
 
-
         return SignIn(principal, AuthSchemes.Token);
     }
 

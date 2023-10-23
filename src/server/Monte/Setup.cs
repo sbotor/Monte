@@ -8,8 +8,7 @@ namespace Monte;
 
 public static class Setup
 {
-    public static IServiceCollection AddMonte<TUserContext>(this IServiceCollection services, IConfigurationRoot config)
-        where TUserContext : class, IUserContext
+    public static IServiceCollection AddMonte(this IServiceCollection services, IConfigurationRoot config)
     {
         services.AddMediatR(x =>
         {
@@ -23,7 +22,7 @@ public static class Setup
 
         services.AddValidatorsFromAssembly(typeof(Setup).Assembly, includeInternalTypes: true);
 
-        services.AddScoped<IUserContext, TUserContext>();
+        services.AddSingleton<IClock, Clock>();
         
         return services;
     }

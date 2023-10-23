@@ -22,10 +22,11 @@ public class AuthSetupWorker : IHostedService
         var context = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
         await context.Database.MigrateAsync(cancellationToken);
 
-        var options = _serviceProvider.GetRequiredService<IOptions<AuthSettings>>();
+        var authSettins = _serviceProvider.GetRequiredService<IOptions<AuthSettings>>().Value;
+        var appSettings = _serviceProvider.GetRequiredService<IOptions<OidcAppSettings>>().Value;
 
         await PopulateScopes(scope, cancellationToken);
-        await PopulateApps(scope, options.Value, cancellationToken);
+        await PopulateApps(scope, authSettins, appSettings, cancellationToken);
     }
 
     private static async Task PopulateScopes(IServiceScope scope, CancellationToken cancellationToken)
@@ -38,13 +39,15 @@ public class AuthSetupWorker : IHostedService
         }
     }
     
-    private static async Task PopulateApps(IServiceScope scope,
-        AuthSettings settings,
+    private static async Task PopulateApps(
+        IServiceScope scope,
+        AuthSettings authSettings,
+        OidcAppSettings appSettings,
         CancellationToken cancellationToken)
     {
         var manager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
 
-        foreach (var descriptor in OpenIddictConfig.GetApplications(settings))
+        foreach (var descriptor in OpenIddictConfig.GetApplications(authSettings, appSettings))
         {
             await manager.UpsertApplication(descriptor, cancellationToken);
         }

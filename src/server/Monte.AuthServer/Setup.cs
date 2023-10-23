@@ -1,3 +1,4 @@
+using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -19,9 +20,8 @@ internal static class Setup
 
         var tokenSettings = config.GetSection(nameof(TokenSettings)).Get<TokenSettings>()
             ?? throw new InvalidOperationException("Token settings not found.");
-        
+
         services.ConfigureOpenIddict(tokenSettings);
-        
         
         services.ConfigureApplicationCookie(x =>
         {
@@ -29,6 +29,7 @@ internal static class Setup
         });
         
         services.Configure<AuthSettings>(config.GetSection(nameof(AuthSettings)));
+        services.Configure<OidcAppSettings>(config.GetSection(nameof(OidcAppSettings)));
         
         services.AddHostedService<AuthSetupWorker>();
     }
@@ -53,7 +54,7 @@ internal static class Setup
                 x.AllowAuthorizationCodeFlow()
                     .AllowClientCredentialsFlow();
 
-                x.AddSigningKey(new SymmetricSecurityKey("secret1234secret1234"u8.ToArray()));
+                x.AddSigningKey(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.SigningKey)));
                 
                 x.SetAuthorizationEndpointUris("connect/authorize")
                     .SetTokenEndpointUris("connect/token")

@@ -1,11 +1,12 @@
 import aiohttp
 from datetime import datetime, timedelta
+import utils
 
 DEFAULT_TOKEN_ENDPOINT = '/connect/token'
 
 _SSL = False
 
-_CLIENT_ID = 'WWtaWQDxhF'
+_CLIENT_ID = 'monte_agent'
 _CLIENT_SECRET = '2VoONsTTvGCryUrTxMY0'
 
 class AuthClient:
@@ -49,16 +50,22 @@ class MonteClient:
         self._session = session
         self._auth = authClient
 
-    async def get(self, path = '/'):
-        if not await self._ensure_auth():
-            return
+        self._origin = utils.extract_hostname()
 
-        async with await self._session.get(path, ssl=_SSL, headers={'Authorization': f'Bearer {self._auth.token}'}) as resp:
-            print(resp.status)
-            if resp.status == 200:
-                print(await resp.json())
-            else:
-                print(await resp.text())
+    async def _execute(self, method: str, path = '', **kwargs):
+        if not await self._ensure_auth():
+            return None
+        
+        headers = {
+            'Authorization': 'Bearer ' + self._token,
+            'Origin': self._origin
+        }
+        result = await self._session.request(method, f'/api/{path}', headers=headers, ssl=_SSL, **kwargs)
+
+        if result.status >= 200 and result.status < 300:
+            return await result.text()
+        
+        return None
 
     async def _ensure_auth(self):
         if not self._auth.is_expired:

@@ -14,10 +14,13 @@ async def main():
         async with aiohttp.ClientSession(API_URL) as api_session:
             api_client = MonteClient(api_session, auth_client)
             while True:
-                await loop(api_client)
-                await asyncio.sleep(SLEEP)
+                try:
+                    await loop_once(api_client)
+                    await asyncio.sleep(SLEEP)
+                except:
+                    pass
 
-async def loop(api: MonteClient):
+async def loop_once(api: MonteClient):
     await api.get('/api/machines/test')
 
 if __name__ == '__main__':

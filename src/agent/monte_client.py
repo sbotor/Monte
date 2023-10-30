@@ -10,11 +10,11 @@ _CLIENT_ID = 'monte_agent'
 _CLIENT_SECRET = '2VoONsTTvGCryUrTxMY0'
 
 class AuthClient:
-    def __init__(self, session: aiohttp.ClientSession):
+    def __init__(self, session: aiohttp.ClientSession, config: utils.Config):
         self._session = session
         self._token = None
         self._expires = datetime.min
-
+        self._config = config
         self.token_endpoint = DEFAULT_TOKEN_ENDPOINT
 
     @property
@@ -27,13 +27,13 @@ class AuthClient:
     
     async def authenticate(self):
         body = {
-            'client_id': _CLIENT_ID,
-            'client_secret': _CLIENT_SECRET,
+            'client_id': self._config.client_id,
+            'client_secret': self._config.client_secret,
             'grant_type': 'client_credentials',
             'scope': 'monte_agent_api'
         }
 
-        async with self._session.post(self.token_endpoint, data=body, ssl=_SSL) as resp:
+        async with self._session.post(self.token_endpoint, data=body, ssl= not self._config.disable_ssl) as resp:
             if resp.status != 200:
                 return False
             
@@ -46,10 +46,10 @@ class AuthClient:
 
 
 class MonteClient:
-    def __init__(self, session: aiohttp.ClientSession, authClient: AuthClient):
+    def __init__(self, session: aiohttp.ClientSession, authClient: AuthClient, config: utils.Config):
         self._session = session
         self._auth = authClient
-
+        self._config = config
         self._origin = utils.extract_hostname()
 
     async def _execute(self, method: str, path = '', **kwargs):
@@ -60,7 +60,7 @@ class MonteClient:
             'Authorization': 'Bearer ' + self._token,
             'Origin': self._origin
         }
-        result = await self._session.request(method, f'/api/{path}', headers=headers, ssl=_SSL, **kwargs)
+        result = await self._session.request(method, f'/api/{path}', headers=headers, ssl= not self._config.disable_ssl, **kwargs)
 
         if result.status >= 200 and result.status < 300:
             return await result.text()

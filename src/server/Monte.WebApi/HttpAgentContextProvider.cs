@@ -2,6 +2,8 @@
 
 public class HttpAgentContextProvider : IAgentContextProvider
 {
+    private const string AgentIdHeaderName = "Agent-Id";
+    
     private readonly IHttpContextAccessor _httpContextAccessor;
 
     private AgentContext? _agent;
@@ -25,13 +27,25 @@ public class HttpAgentContextProvider : IAgentContextProvider
             throw new InvalidOperationException("No HTTP context found.");
         }
 
-        var origin = httpContext.Request.Headers.Origin.FirstOrDefault();
-
+        var request = httpContext.Request;
+        
+        var origin = request.Headers.Origin.FirstOrDefault();
         if (string.IsNullOrEmpty(origin))
         {
             throw new InvalidOperationException("No request Origin found.");
         }
 
-        return new(origin);
+        var agentId = request.Headers[AgentIdHeaderName].FirstOrDefault();
+        if (string.IsNullOrEmpty(agentId))
+        {
+            return new(origin, null);
+        }
+
+        if (!Guid.TryParse(agentId, out var parsed))
+        {
+            throw new InvalidOperationException("Could not parse agent ID.");
+        }
+
+        return new(origin, parsed);
     }
 }

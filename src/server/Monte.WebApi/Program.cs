@@ -10,7 +10,8 @@ builder.Services.ConfigureAuth(builder.Configuration);
 
 builder.Services.AddMonte(builder.Configuration)
     .AddScoped<IUserContextProvider, HttpUserContextProvider>()
-    .AddScoped<IAgentContextProvider, HttpAgentContextProvider>();
+    .AddScoped<IAgentContextProvider, HttpAgentContextProvider>()
+    .AddHttpContextAccessor();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

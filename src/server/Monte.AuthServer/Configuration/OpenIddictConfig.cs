@@ -86,10 +86,12 @@ public static class OpenIddictConfig
                 OpenIddictConstants.Permissions.Endpoints.Logout,
 
                 OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode,
+                OpenIddictConstants.Permissions.GrantTypes.ClientCredentials,
                 
                 OpenIddictConstants.Permissions.ResponseTypes.Code,
 
                 OpenIddictConstants.Permissions.Prefixes.Scope + AuthConsts.Scopes.MonteMainApi,
+                OpenIddictConstants.Permissions.Prefixes.Scope + AuthConsts.Scopes.MonteAgentApi,
             }
         };
     }

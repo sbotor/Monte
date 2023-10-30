@@ -10,6 +10,7 @@ public class Machine
     public string Name { get; set; } = null!;
     public int OrdinalNumber { get; set; }
     public DateTime CreatedDateTime { get; set; }
+    public DateTime HeartbeatDateTime { get; set; }
 
     public string DisplayName => $"{Name} #{OrdinalNumber}";
 }

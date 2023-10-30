@@ -4,11 +4,6 @@ import utils
 
 DEFAULT_TOKEN_ENDPOINT = '/connect/token'
 
-_SSL = False
-
-_CLIENT_ID = 'monte_agent'
-_CLIENT_SECRET = '2VoONsTTvGCryUrTxMY0'
-
 class AuthClient:
     def __init__(self, session: aiohttp.ClientSession, config: utils.Config):
         self._session = session

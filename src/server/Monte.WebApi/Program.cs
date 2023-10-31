@@ -34,6 +34,8 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
 await app.MigrateDatabase();
 
 app.Run();

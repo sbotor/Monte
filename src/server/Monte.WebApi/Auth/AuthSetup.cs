@@ -1,8 +1,8 @@
 using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using Monte.WebApi.Configuration;
+using OpenIddict.Validation.AspNetCore;
 
 namespace Monte.WebApi.Auth;
 
@@ -16,20 +16,15 @@ public static class AuthSetup
         var settings = config.GetSection(nameof(TokenSettings)).Get<TokenSettings>()
             ?? throw new InvalidOperationException("No token settings found");
 
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(x =>
-            {
-                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.Key));
-
-                x.TokenValidationParameters = new()
-                {
-                    ValidIssuer = settings.Issuer,
-                    IssuerSigningKey = key,
-                    ValidateIssuer = true,
-                    ValidateAudience = false,
-                    ValidateIssuerSigningKey = true,
-                };
-            });
+        services.AddOpenIddict(x =>
+        {
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.Key));
+            x.AddValidation().SetIssuer(settings.Issuer)
+                .SetConfiguration(new() { Issuer = settings.Issuer, SigningKeys = { key } })
+                .UseAspNetCore();
+        });
+        
+        services.AddAuthentication(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme);
 
         services.AddAuthorization(x =>
         {
@@ -41,13 +36,11 @@ public static class AuthSetup
     }
 
     private static void RequireScope(this AuthorizationPolicyBuilder builder, string scope)
-    {
-        builder.RequireAuthenticatedUser()
+        => builder.RequireAuthenticatedUser()
             .RequireAssertion(ctx =>
             {
                 var scopeClaim = ctx.User.FindFirst("scope");
                 return scopeClaim is not null
-                    && scopeClaim.Value.Split(' ').Any(x => x == scope);
+                       && scopeClaim.Value.Split(' ').Any(x => x == scope);
             });
-    }
 }

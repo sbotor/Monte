@@ -1,12 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Monte.Features.Machines;
+using Monte.Features.Metrics;
 
 namespace Monte;
 
 public class MonteDbContext : DbContext
 {
     public DbSet<Machine> Machines => Set<Machine>();
+    public DbSet<MetricsEntry> MetricsEntries => Set<MetricsEntry>();
     
     public MonteDbContext(DbContextOptions<MonteDbContext> options)
         : base(options)
@@ -16,6 +18,8 @@ public class MonteDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfiguration(new MachineEntityConfiguration());
+
+        modelBuilder.ApplyConfiguration(new MetricsEntryConfiguration());
     }
 }
 

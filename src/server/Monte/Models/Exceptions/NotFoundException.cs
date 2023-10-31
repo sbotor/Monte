@@ -2,7 +2,7 @@
 
 public class NotFoundException : Exception
 {
-    public NotFoundException(string? message = "The resource was not found.")
+    public NotFoundException(string? message = null)
         : base(message)
     {
     }

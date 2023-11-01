@@ -1,16 +1,16 @@
 import aiohttp
 from datetime import datetime, timedelta
 import utils
-
-DEFAULT_TOKEN_ENDPOINT = '/connect/token'
+import config
+import logging
 
 class AuthClient:
-    def __init__(self, session: aiohttp.ClientSession, config: utils.Config):
+    def __init__(self, session: aiohttp.ClientSession, config: config.Config):
         self._session = session
         self._token = None
         self._expires = datetime.min
         self._config = config
-        self.token_endpoint = DEFAULT_TOKEN_ENDPOINT
+        self._logger = logging.getLogger(__name__)
 
     @property
     def token(self):
@@ -28,39 +28,75 @@ class AuthClient:
             'scope': 'monte_agent_api'
         }
 
-        async with self._session.post(self.token_endpoint, data=body, ssl= not self._config.disable_ssl) as resp:
+        self._logger.info('Authenticating.')
+        async with await self._session.post('/connect/token', data=body, ssl=self._config.enable_ssl) as resp:
             if resp.status != 200:
+                self._logger.warning('Could not authenticate. Status: %s.', resp.status)
                 return False
             
             resp_json = await resp.json()
             self._token = resp_json['access_token']
             self._expires = datetime.utcnow() + timedelta(seconds=resp_json['expires_in'])
 
-            print(self._token)
             return True
 
+async def _default_resp_handler(resp: aiohttp.ClientResponse):
+    if resp.status >= 200 and resp.status < 300:
+        return await resp.text()
 
 class MonteClient:
-    def __init__(self, session: aiohttp.ClientSession, authClient: AuthClient, config: utils.Config):
+    def __init__(self, session: aiohttp.ClientSession, authClient: AuthClient, config: config.Config):
         self._session = session
         self._auth = authClient
         self._config = config
         self._origin = utils.extract_hostname()
+        self._id = config.id
 
-    async def _execute(self, method: str, path = '', **kwargs):
+    async def _execute_core(self, method: str, path='', resp_handler=None, **kwargs):
+        resp_handler = resp_handler or _default_resp_handler
+        
+        async with await self._session.request(method, f'/api/{path}', ssl=self._config.enable_ssl, **kwargs) as resp:
+            return await resp_handler(resp)
+
+    async def _execute(self, method: str, path='', **kwargs):
         if not await self._ensure_auth():
             return None
         
+        if not await self._ensure_init():
+            return None
+        
         headers = {
-            'Authorization': 'Bearer ' + self._token,
+            'Authorization': 'Bearer ' + self._auth._token,
+            'Origin': self._origin,
+            'Agent-Id': self._id
+        }
+        
+        return await self._execute_core(method, path, None, headers=headers, **kwargs)
+    
+    async def _initialize(self):
+        if not await self._ensure_auth():
+            return ''
+        
+        headers = {
+            'Authorization': 'Bearer ' + self._auth._token,
             'Origin': self._origin
         }
-        result = await self._session.request(method, f'/api/{path}', headers=headers, ssl= not self._config.disable_ssl, **kwargs)
 
-        if result.status >= 200 and result.status < 300:
-            return await result.text()
+        return await self._execute_core('POST', 'agentMetrics/init', None, headers=headers)
+    
+    async def _ensure_init(self):
+        if self._id:
+            return True
         
-        return None
+        if not self._id:
+            self._id = await self._initialize()
+            if not self._id:
+                print('Could not initialize agent ID.')
+                return False
+            
+            utils.store_agent_id(self._id)
+            
+        return True
 
     async def _ensure_auth(self):
         if not self._auth.is_expired:
@@ -71,4 +107,7 @@ class MonteClient:
             print('Could not authenticate.')
         
         return success
+    
+    async def push_report(self):
+        await self._execute('POST', 'agentMetrics')
             

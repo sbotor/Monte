@@ -1,18 +1,16 @@
 ---
 defaults:
-  client_id: "monte_agent"
-  client_secret: "2VoONsTTvGCryUrTxMY0"
-  name: 
-  reporting_period: 1
-  disable_ssl: true 
+  client_id: 'monte_agent'
+  client_secret: '2VoONsTTvGCryUrTxMY0'
+  name: 'test-agent'
+  id: ''
+  reporting_period: 5
+  enable_ssl: false
 environments:
   production:
     auth_url: 'https://localhost:7049'
     api_url: 'https://localhost:7048'
-    disable_ssl: false
+    enable_ssl: true
   development:
-    auth_url: 'https://localhost:7049'
-    api_url: 'https://localhost:7048'
-  docker: 
     auth_url: 'https://localhost:7049'
     api_url: 'https://localhost:7048'

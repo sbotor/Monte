@@ -6,7 +6,7 @@ namespace Monte.Features.Metrics;
 
 public class MetricsEntry
 {
-    public int Id { get; set; }
+    public uint Id { get; set; }
     public DateTime ReportDateTime { get; set; }
     
     public Guid MachineId { get; set; }

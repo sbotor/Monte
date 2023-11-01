@@ -6,7 +6,7 @@ namespace Monte.Features.Machines.Commands;
 
 public static class UpsertMachine
 {
-    public record Command : ICommand<string>;
+    public record Command(Machine.CpuInfo Cpu, Machine.MemoryInfo Memory) : ICommand<string>;
 
     internal class Handler : ICommandHandler<Command, string>
     {
@@ -30,7 +30,7 @@ public static class UpsertMachine
 
             var agentId = !agentContext.Id.HasValue
                 ? await CreateNew(agentContext.Origin)
-                : await UpdateMachine(agentContext.Id.Value);
+                : await UpdateMachine(agentContext.Id.Value, request);
 
             return agentId;
         }
@@ -59,13 +59,16 @@ public static class UpsertMachine
             return machine.Id.ToString();
         }
 
-        private async Task<string> UpdateMachine(Guid id)
+        private async Task<string> UpdateMachine(Guid id, Command command)
         {
             var machine = await _context.Machines
                 .FirstOrDefaultAsync(x => x.Id == id)
                 ?? throw new NotFoundException();
 
             machine.HeartbeatDateTime = _clock.UtcNow;
+            machine.Cpu.Update(command.Cpu);
+            machine.Memory.Update(command.Memory);
+            
             await _context.SaveChangesAsync();
 
             return machine.Id.ToString();

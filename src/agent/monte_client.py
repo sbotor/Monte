@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import utils
 import config
 import logging
+import monitoring
 
 class AuthClient:
     def __init__(self, session: aiohttp.ClientSession, config: config.Config):
@@ -40,10 +41,6 @@ class AuthClient:
 
             return True
 
-async def _default_resp_handler(resp: aiohttp.ClientResponse):
-    if resp.status >= 200 and resp.status < 300:
-        return await resp.text()
-
 class MonteClient:
     def __init__(self, session: aiohttp.ClientSession, authClient: AuthClient, config: config.Config):
         self._session = session
@@ -51,9 +48,20 @@ class MonteClient:
         self._config = config
         self._origin = utils.extract_hostname()
         self._id = config.id
+        self._initialized = False
 
+        self._logger = logging.getLogger(__name__)
+
+    async def _default_resp_handler(self, resp: aiohttp.ClientResponse):
+        resp_text = await resp.text()
+        if not (resp.status >= 200 and resp.status < 300):
+            self._logger.warn('Error executing %s "%s": %s. %s', resp.method, resp.url, resp.status, resp_text)
+            return None
+
+        return resp_text
+    
     async def _execute_core(self, method: str, path='', resp_handler=None, **kwargs):
-        resp_handler = resp_handler or _default_resp_handler
+        resp_handler = resp_handler or self._default_resp_handler
         
         async with await self._session.request(method, f'/api/{path}', ssl=self._config.enable_ssl, **kwargs) as resp:
             return await resp_handler(resp)
@@ -82,19 +90,24 @@ class MonteClient:
             'Origin': self._origin
         }
 
-        return await self._execute_core('POST', 'agentMetrics/init', None, headers=headers)
+        if self._id:
+            headers['Agent-Id'] = self._id
+
+        body = monitoring.get_system_info()
+
+        return await self._execute_core('PUT', 'agentMetrics/init', json=body, headers=headers)
     
     async def _ensure_init(self):
-        if self._id:
+        if self._initialized:
             return True
         
+        self._id = await self._initialize()
         if not self._id:
-            self._id = await self._initialize()
-            if not self._id:
-                print('Could not initialize agent ID.')
-                return False
-            
-            utils.store_agent_id(self._id)
+            print('Could not initialize agent ID.')
+            return False
+        
+        self._initialized = True
+        utils.store_agent_id(self._id)
             
         return True
 

@@ -1,9 +1,9 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Monte.Features.Machines.Commands;
 using Monte.Features.Metrics.Commands;
 using Monte.WebApi.Auth;
+using Monte.WebApi.Features.Metrics.Requests;
 
 namespace Monte.WebApi.Features.Metrics;
 
@@ -20,8 +20,8 @@ public class AgentMetricsController : ControllerBase
     }
     
     [HttpPut("init")]
-    public async Task<IActionResult> InitializeMachine()
-        => Ok(await _sender.Send(new UpsertMachine.Command()));
+    public async Task<IActionResult> InitializeMachine(InitializeMachineRequest request)
+        => Ok(await _sender.Send(request.ToCommand()));
 
     [HttpPost]
     public async Task<IActionResult> Report()

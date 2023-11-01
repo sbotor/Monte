@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Monte;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Monte.Migrations
 {
     [DbContext(typeof(MonteDbContext))]
-    partial class MonteDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231101173730_MachineSpecs")]
+    partial class MachineSpecs
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -100,11 +103,11 @@ namespace Monte.Migrations
                             b1.Property<Guid>("MachineId")
                                 .HasColumnType("uuid");
 
-                            b1.Property<decimal>("Swap")
-                                .HasColumnType("numeric(20,0)");
+                            b1.Property<int>("Swap")
+                                .HasColumnType("integer");
 
-                            b1.Property<decimal>("Total")
-                                .HasColumnType("numeric(20,0)");
+                            b1.Property<int>("Total")
+                                .HasColumnType("integer");
 
                             b1.HasKey("MachineId");
 

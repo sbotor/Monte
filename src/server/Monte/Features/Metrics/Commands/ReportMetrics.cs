@@ -6,8 +6,21 @@ namespace Monte.Features.Metrics.Commands;
 
 public static class ReportMetrics
 {
-    public class Command : ICommand
+    public record Command(Command.CpuUsage Cpu, Command.MemoryUsage Memory) : ICommand
     {
+        public class CpuUsage
+        {
+            public IReadOnlyCollection<double> PercentsUsed { get; set; } = Array.Empty<double>();
+            public double Load { get; set; }
+        }
+
+        public class MemoryUsage
+        {
+            public ulong Available { get; set; }
+            public double PercentUsed { get; set; }
+            public ulong SwapAvailable { get; set; }
+            public double SwapPercentUsed { get; set; }
+        }
     }
 
     internal class Handler : ICommandHandler<Command>

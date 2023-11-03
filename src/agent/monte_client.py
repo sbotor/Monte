@@ -82,6 +82,8 @@ class MonteClient:
         return await self._execute_core(method, path, None, headers=headers, **kwargs)
     
     async def _initialize(self):
+        monitoring.initialize_monitoring()
+        
         if not await self._ensure_auth():
             return ''
         
@@ -122,5 +124,8 @@ class MonteClient:
         return success
     
     async def push_report(self):
-        await self._execute('POST', 'agentMetrics')
+        await self._ensure_init()
+
+        body = monitoring.get_system_resources(self._config.reporting_period)
+        await self._execute('POST', 'agentMetrics', json=body)
             

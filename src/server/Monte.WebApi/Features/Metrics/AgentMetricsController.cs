@@ -1,7 +1,6 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Monte.Features.Metrics.Commands;
 using Monte.WebApi.Auth;
 using Monte.WebApi.Features.Metrics.Requests;
 
@@ -24,9 +23,9 @@ public class AgentMetricsController : ControllerBase
         => Ok(await _sender.Send(request.ToCommand()));
 
     [HttpPost]
-    public async Task<IActionResult> Report()
+    public async Task<IActionResult> Report(ReportMetricsRequest request)
     {
-        await _sender.Send(new ReportMetrics.Command());
+        await _sender.Send(request.ToCommand());
         return Ok();
     }
 }

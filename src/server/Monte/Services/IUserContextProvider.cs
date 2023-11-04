@@ -1,4 +1,4 @@
-namespace Monte;
+namespace Monte.Services;
 
 public interface IUserContextProvider
 {

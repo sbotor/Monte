@@ -1,5 +1,5 @@
 ﻿using System.Net;
-using Monte.Exceptions;
+using Monte.Models.Exceptions;
 
 namespace Monte.WebApi;
 

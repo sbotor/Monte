@@ -20,6 +20,7 @@ public class MonteDbContext : DbContext
         modelBuilder.ApplyConfiguration(new MachineEntityConfiguration());
 
         modelBuilder.ApplyConfiguration(new MetricsEntryConfiguration());
+        modelBuilder.ApplyConfiguration(new CoreUsageEntryConfiguration());
     }
 }
 

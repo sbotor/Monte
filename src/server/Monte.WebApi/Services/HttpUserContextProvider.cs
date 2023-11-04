@@ -1,4 +1,6 @@
-namespace Monte.WebApi;
+using Monte.Services;
+
+namespace Monte.WebApi.Services;
 
 public class HttpUserContextProvider : IUserContextProvider
 {

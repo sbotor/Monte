@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Monte.Cqrs;
-using Monte.Exceptions;
+using Monte.Models.Exceptions;
+using Monte.Services;
 
 namespace Monte.Features.Metrics.Commands;
 
@@ -39,17 +40,37 @@ public static class ReportMetrics
         public async Task Handle(Command request, CancellationToken cancellationToken)
         {
             var agentContext = await _agentContextProvider.GetContext(CancellationToken.None);
-            var agentId = agentContext.Id ?? throw new BadRequestException();
+            var agentId = agentContext.RequiredId;
             var now = _clock.UtcNow;
             
             var machine = await _dbContext.Machines.FirstOrDefaultAsync(x => x.Id == agentId, CancellationToken.None)
                 ?? throw new NotFoundException();
             machine.HeartbeatDateTime = now;
 
+            var cpu = request.Cpu;
+            var memory = request.Memory;
+            
             _dbContext.Add(new MetricsEntry
             {
                 MachineId = agentId,
                 ReportDateTime = now,
+                Cores = cpu.PercentsUsed.Select((x, i) => new CoreUsageEntry
+                {
+                    Ordinal = i,
+                    PercentUsed = x
+                }).ToList(),
+                Cpu = new()
+                {
+                    AveragePercentUsed = cpu.PercentsUsed.Average(),
+                    Load = cpu.Load
+                },
+                Memory = new()
+                {
+                    Available = memory.Available,
+                    PercentUsed = memory.PercentUsed,
+                    SwapAvailable = memory.SwapAvailable,
+                    SwapPercentUsed = memory.SwapPercentUsed
+                }
             });
 
             await _dbContext.SaveChangesAsync(CancellationToken.None);

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Monte.Cqrs;
-using Monte.Exceptions;
+using Monte.Models.Exceptions;
+using Monte.Services;
 
 namespace Monte.Features.Machines.Commands;
 
@@ -29,13 +30,13 @@ public static class UpsertMachine
             var agentContext = await _agentContextProvider.GetContext(CancellationToken.None);
 
             var agentId = !agentContext.Id.HasValue
-                ? await CreateNew(agentContext.Origin)
+                ? await CreateNew(agentContext.Origin, request)
                 : await UpdateMachine(agentContext.Id.Value, request);
 
             return agentId;
         }
 
-        private async Task<string> CreateNew(string origin)
+        private async Task<string> CreateNew(string origin, Command command)
         {
             var lastExistingMachine = await _context.Machines.AsNoTracking()
                 .Where(x => x.Name == origin)
@@ -50,9 +51,13 @@ public static class UpsertMachine
                 CreatedDateTime = now,
                 HeartbeatDateTime = now,
                 OrdinalNumber = machineNumber,
-                Name = origin
+                Name = origin,
+                Cpu = new(),
+                Memory = new()
             };
-
+            machine.Cpu.Update(command.Cpu);
+            machine.Memory.Update(command.Memory);
+            
             _context.Add(machine);
             await _context.SaveChangesAsync();
 

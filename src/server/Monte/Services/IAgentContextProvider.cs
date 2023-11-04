@@ -1,4 +1,6 @@
-﻿namespace Monte;
+﻿using Monte.Models.Exceptions;
+
+namespace Monte.Services;
 
 public interface IAgentContextProvider
 {
@@ -9,6 +11,8 @@ public class AgentContext
 {
     public string Origin { get; }
     public Guid? Id { get; }
+    
+    public Guid RequiredId => Id ?? throw new BadRequestException("No agent ID found.");
 
     public AgentContext(string origin, Guid? id)
     {

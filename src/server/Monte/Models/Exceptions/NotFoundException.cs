@@ -1,4 +1,4 @@
-﻿namespace Monte.Exceptions;
+﻿namespace Monte.Models.Exceptions;
 
 public class NotFoundException : Exception
 {

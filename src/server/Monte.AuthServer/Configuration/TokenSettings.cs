@@ -4,6 +4,7 @@ public class TokenSettings
 {
     public LifetimesConfig Lifetimes { get; set; } = new();
     public string SigningKey { get; set; } = null!;
+    public Uri Issuer { get; set; } = null!;
 
     public class LifetimesConfig
     {

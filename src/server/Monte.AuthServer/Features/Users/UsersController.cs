@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Monte.AuthServer.Features.Users.Extensions;
 using Monte.AuthServer.Features.Users.Models;
+using Monte.AuthServer.Helpers;
 
 namespace Monte.AuthServer.Features.Users;
 
@@ -15,24 +16,6 @@ public class UsersController : ControllerBase
     public UsersController(UserManager<IdentityUser> userManager)
     {
         _userManager = userManager;
-    }
-    
-    [HttpGet("~/connect/user-info")]
-    public async Task<IActionResult> GetUserInfo()
-    {
-        var user = await _userManager.GetUserAsync(HttpContext.User);
-        if (user is null)
-        {
-            return NotFound();
-        }
-
-        var result = new UserDetails
-        {
-            Id = user.Id,
-            Name = user.UserName ?? string.Empty
-        };
-
-        return Ok(result);
     }
 
     [HttpPost]
@@ -64,7 +47,13 @@ public class UsersController : ControllerBase
         
         try
         {
-            result = await _userManager.AddPasswordAsync(user, request.Password);
+            ThrowIfError(await _userManager.AddPasswordAsync(user, request.Password));
+            ThrowIfError(await _userManager.AddToRoleAsync(user, AuthConsts.Roles.MonteAdmin));
+        }
+        catch (IdentityErrorException e)
+        {
+            await _userManager.DeleteAsync(user);
+            return BadRequest(e.Errors);
         }
         catch
         {
@@ -72,12 +61,26 @@ public class UsersController : ControllerBase
             throw;
         }
 
+        return Ok();
+    }
+
+    private static void ThrowIfError(IdentityResult result)
+    {
         if (result.Succeeded)
         {
-            return Ok();
+            return;
         }
-        
-        await _userManager.DeleteAsync(user);
-        return BadRequest(result.Errors.ToErrorDict());
+
+        throw new IdentityErrorException(result.Errors.ToErrorDict());
+    }
+
+    private sealed class IdentityErrorException : Exception
+    {
+        public IReadOnlyDictionary<string, string[]> Errors { get; }
+
+        public IdentityErrorException(IReadOnlyDictionary<string, string[]> errors)
+        {
+            Errors = errors;
+        }
     }
 }

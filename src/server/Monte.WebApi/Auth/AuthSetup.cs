@@ -6,11 +6,17 @@ using OpenIddict.Validation.AspNetCore;
 
 namespace Monte.WebApi.Auth;
 
+public static class AuthConsts
+{
+    public static class Roles
+    {
+        public const string MonteAgent = "monte_agent";
+        public const string MonteAdmin = "monte_admin";
+    }
+}
+
 public static class AuthSetup
 {
-    public const string RequireMainApiScope = "MonteMainApi";
-    public const string RequireAgentApiScope = "MonteClientApi";
-    
     public static void ConfigureAuth(this IServiceCollection services, IConfigurationRoot config)
     {
         var settings = config.GetSection(nameof(TokenSettings)).Get<TokenSettings>()
@@ -25,22 +31,6 @@ public static class AuthSetup
         });
         
         services.AddAuthentication(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme);
-
-        services.AddAuthorization(x =>
-        {
-            x.AddPolicy(RequireMainApiScope, y => y.RequireScope("monte_main_api"));
-            x.AddPolicy(RequireAgentApiScope, y => y.RequireScope("monte_agent_api"));
-
-            x.DefaultPolicy = x.GetPolicy(RequireMainApiScope)!;
-        });
+        services.AddAuthorization();
     }
-
-    private static void RequireScope(this AuthorizationPolicyBuilder builder, string scope)
-        => builder.RequireAuthenticatedUser()
-            .RequireAssertion(ctx =>
-            {
-                var scopeClaim = ctx.User.FindFirst("scope");
-                return scopeClaim is not null
-                       && scopeClaim.Value.Split(' ').Any(x => x == scope);
-            });
 }

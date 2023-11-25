@@ -8,7 +8,7 @@ namespace Monte.WebApi.Features.Metrics;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(AuthSetup.RequireAgentApiScope)]
+[Authorize(Roles = AuthConsts.Roles.MonteAgent)]
 public class AgentMetricsController : ControllerBase
 {
     private readonly ISender _sender;

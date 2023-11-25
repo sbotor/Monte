@@ -7,6 +7,19 @@ builder.Services.AddRazorPages();
 
 builder.Services.RegisterServices(builder.Configuration);
 
+builder.Services.AddCors(x =>
+{
+    var origins = builder.Configuration
+        .GetSection("AllowedOrigins")
+        .Get<string[]>()
+        ?? throw new InvalidOperationException("No CORS config found.");
+    
+    x.AddDefaultPolicy(
+        y => y.AllowAnyHeader()
+            .AllowAnyMethod()
+            .WithOrigins(origins));
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -21,6 +34,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseCors();
 
 app.UseAuthentication();
 app.UseAuthorization();

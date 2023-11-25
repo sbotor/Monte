@@ -8,7 +8,7 @@ namespace Monte.WebApi.Features.Machines;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(AuthSetup.RequireMainApiScope)]
+[Authorize(Roles = AuthConsts.Roles.MonteAdmin)]
 public class MachinesController : ControllerBase
 {
     private readonly ISender _sender;

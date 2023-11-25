@@ -1,11 +1,12 @@
 using Monte.AuthServer.Helpers;
 using OpenIddict.Abstractions;
+using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace Monte.AuthServer.Configuration;
 
 public static class OpenIddictConfig
 {
-    public static IEnumerable<OpenIddictScopeDescriptor> GetScopes()
+    public static IEnumerable<OpenIddictScopeDescriptor> GetCustomScopes()
     {
         yield return new()
         {
@@ -18,52 +19,58 @@ public static class OpenIddictConfig
         };
     }
 
-    public static IEnumerable<string> GetScopeNames()
-        => GetScopes().Select(x => x.Name!);
+    public static IEnumerable<string> GetCustomScopeNames()
+        => GetCustomScopes().Select(x => x.Name!);
 
     public static IEnumerable<OpenIddictApplicationDescriptor> GetApplications(
         AuthSettings settings,
         OidcAppSettings appSettings)
     {
-        appSettings.Api.Validate("Invalid API OIDC config.");
+        appSettings.Client.Validate("Invalid Client OIDC config.", true);
         yield return new()
         {
-            DisplayName = "Monte API",
-            ClientId = appSettings.Api.ClientId,
-            ClientSecret = appSettings.Api.ClientSecret,
+            DisplayName = "Monte Client",
+            ClientId = appSettings.Client.ClientId,
             RedirectUris = { settings.RedirectUri },
-            Type = OpenIddictConstants.ClientTypes.Confidential,
+            Type = ClientTypes.Public,
             Permissions =
             {
-                OpenIddictConstants.Permissions.Endpoints.Authorization,
-                OpenIddictConstants.Permissions.Endpoints.Token,
-                OpenIddictConstants.Permissions.Endpoints.Introspection,
-                OpenIddictConstants.Permissions.Endpoints.Logout,
+                Permissions.Endpoints.Authorization,
+                Permissions.Endpoints.Token,
+                Permissions.Endpoints.Introspection,
+                Permissions.Endpoints.Logout,
 
-                OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode,
+                Permissions.GrantTypes.AuthorizationCode,
                 
-                OpenIddictConstants.Permissions.ResponseTypes.Code,
+                Permissions.ResponseTypes.Code,
 
-                OpenIddictConstants.Permissions.Prefixes.Scope + AuthConsts.Scopes.MonteMainApi,
+                Permissions.Scopes.Roles,
+                Permissions.Scopes.Profile,
+                Permissions.Prefixes.Scope + AuthConsts.Scopes.MonteMainApi
+            },
+            Requirements =
+            {
+                Requirements.Features.ProofKeyForCodeExchange
             }
         };
         
         appSettings.Agent.Validate("Invalid Agent OIDC config.");
         yield return new()
         {
-            DisplayName = "Monte Agent API",
+            DisplayName = "Monte Agent",
             ClientId = appSettings.Agent.ClientId,
             ClientSecret = appSettings.Agent.ClientSecret,
-            Type = OpenIddictConstants.ClientTypes.Confidential,
+            Type = ClientTypes.Confidential,
             Permissions =
             {
-                OpenIddictConstants.Permissions.Endpoints.Authorization,
-                OpenIddictConstants.Permissions.Endpoints.Token,
-                OpenIddictConstants.Permissions.Endpoints.Introspection,
+                Permissions.Endpoints.Authorization,
+                Permissions.Endpoints.Token,
+                Permissions.Endpoints.Introspection,
 
-                OpenIddictConstants.Permissions.GrantTypes.ClientCredentials,
+                Permissions.GrantTypes.ClientCredentials,
 
-                OpenIddictConstants.Permissions.Prefixes.Scope + AuthConsts.Scopes.MonteAgentApi,
+                Permissions.Scopes.Roles,
+                Permissions.Prefixes.Scope + AuthConsts.Scopes.MonteAgentApi,
             }
         };
 
@@ -77,21 +84,22 @@ public static class OpenIddictConfig
             ClientId = "postman",
             ClientSecret = "postman-secret",
             RedirectUris = { new("https://localhost:7049") },
-            Type = OpenIddictConstants.ClientTypes.Confidential,
+            Type = ClientTypes.Confidential,
             Permissions =
             {
-                OpenIddictConstants.Permissions.Endpoints.Authorization,
-                OpenIddictConstants.Permissions.Endpoints.Token,
-                OpenIddictConstants.Permissions.Endpoints.Introspection,
-                OpenIddictConstants.Permissions.Endpoints.Logout,
-
-                OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode,
-                OpenIddictConstants.Permissions.GrantTypes.ClientCredentials,
+                Permissions.Endpoints.Authorization,
+                Permissions.Endpoints.Token,
+                Permissions.Endpoints.Introspection,
+                Permissions.Endpoints.Logout,
                 
-                OpenIddictConstants.Permissions.ResponseTypes.Code,
-
-                OpenIddictConstants.Permissions.Prefixes.Scope + AuthConsts.Scopes.MonteMainApi,
-                OpenIddictConstants.Permissions.Prefixes.Scope + AuthConsts.Scopes.MonteAgentApi,
+                Permissions.GrantTypes.AuthorizationCode,
+                Permissions.GrantTypes.ClientCredentials,
+                
+                Permissions.ResponseTypes.Code,
+                
+                Permissions.Scopes.Roles,
+                Permissions.Prefixes.Scope + AuthConsts.Scopes.MonteMainApi,
+                Permissions.Prefixes.Scope + AuthConsts.Scopes.MonteAgentApi
             }
         };
     }

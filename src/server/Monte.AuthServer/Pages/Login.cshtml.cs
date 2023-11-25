@@ -54,7 +54,7 @@ public class Login : PageModel
         var result = await _signInManager.PasswordSignInAsync(user, Password, false, false);
         if (result.Succeeded)
         {
-            return RedirectToPage(_settings.RedirectUri);
+            return Redirect(_settings.RedirectUri.ToString());
         }
 
         return Page();

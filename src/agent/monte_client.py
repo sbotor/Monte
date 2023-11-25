@@ -26,7 +26,7 @@ class AuthClient:
             'client_id': self._config.client_id,
             'client_secret': self._config.client_secret,
             'grant_type': 'client_credentials',
-            'scope': 'monte_agent_api'
+            'scope': 'openid roles monte_agent_api'
         }
 
         self._logger.info('Authenticating.')

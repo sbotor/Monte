@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using Monte.AuthServer.Configuration;
 using Monte.AuthServer.Helpers;
 using OpenIddict.Abstractions;
+using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace Monte.AuthServer.Features.Auth;
 
@@ -32,7 +33,7 @@ public class AuthController : ControllerBase
     {
         var request = ExtractRequest();
 
-        if (request.HasPrompt(OpenIddictConstants.Prompts.Login))
+        if (request.HasPrompt(Prompts.Login))
         {
             return LoginRedirect();
         }
@@ -47,14 +48,31 @@ public class AuthController : ControllerBase
 
         var claims = new Claim[]
         {
-            new(OpenIddictConstants.Claims.Subject, result.Principal.Identity!.Name!)
+            new(Claims.Subject,
+                result.Principal.FindFirstValue(Claims.Subject)!),
+            new(Claims.Role,
+                result.Principal.FindFirstValue(Claims.Role)!),
+            new(Claims.Name,
+                result.Principal.FindFirstValue(Claims.Name)!)
         };
 
-        var identity = new ClaimsIdentity(claims, AuthSchemes.Token);
-        AddScopes(identity, request.GetScopes());
+        var identity = new ClaimsIdentity(claims, AuthSchemes.TokenServer);
+        identity.SetScopes(request.GetScopes());
+        identity.SetDestinations(x => x.Type switch
+        {
+            Claims.Name when identity.HasScope(Scopes.Profile) => new[]
+            {
+                Destinations.AccessToken, Destinations.IdentityToken
+            },
+            Claims.Role when identity.HasScope(Scopes.Roles) => new[]
+            {
+                Destinations.AccessToken, Destinations.IdentityToken
+            },
+            _ => new[] { Destinations.AccessToken }
+        });
         var principal = new ClaimsPrincipal(identity);
 
-        return SignIn(principal, AuthSchemes.Token);
+        return SignIn(principal, AuthSchemes.TokenServer);
     }
 
     [HttpPost("token")]
@@ -65,7 +83,7 @@ public class AuthController : ControllerBase
         ClaimsPrincipal principal;
         if (request.IsAuthorizationCodeGrantType())
         {
-            var result = await HttpContext.AuthenticateAsync(AuthSchemes.Token);
+            var result = await HttpContext.AuthenticateAsync(AuthSchemes.TokenServer);
             if (!result.Succeeded)
             {
                 return LoginRedirect();
@@ -75,10 +93,17 @@ public class AuthController : ControllerBase
         }
         else if (request.IsClientCredentialsGrantType())
         {
-            var identity = new ClaimsIdentity(AuthSchemes.Token);
-            identity.AddClaim(OpenIddictConstants.Claims.Subject, request.ClientId!);
-            
-            AddScopes(identity, request.GetScopes());
+            var identity = new ClaimsIdentity(AuthSchemes.TokenServer);
+            identity.AddClaim(Claims.Subject, request.ClientId!);
+            identity.AddClaim(Claims.Role, AuthConsts.Roles.MonteAgent);
+            identity.SetDestinations(x => x.Type switch
+            {
+                Claims.Role when request.HasScope(Scopes.Roles) => new[]
+                {
+                    Destinations.AccessToken, Destinations.IdentityToken
+                },
+                _ => new[] { Destinations.IdentityToken }
+            });
             principal = new ClaimsPrincipal(identity);
         }
         else
@@ -86,7 +111,7 @@ public class AuthController : ControllerBase
             throw new InvalidOperationException("Invalid grant type.");
         }
         
-        return SignIn(principal, AuthSchemes.Token);
+        return SignIn(principal, AuthSchemes.TokenServer);
     }
 
     [HttpPost("logout")]
@@ -94,7 +119,7 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Logout()
     {
         await _signInManager.SignOutAsync();
-        return SignOut(AuthSchemes.Token);
+        return SignOut(AuthSchemes.TokenServer);
     }
     
     private OpenIddictRequest ExtractRequest()
@@ -107,12 +132,4 @@ public class AuthController : ControllerBase
                 RedirectUri = _settings.RedirectUri.ToString()
             },
             AuthSchemes.Cookie);
-
-    private static void AddScopes(ClaimsIdentity identity, IEnumerable<string> scopes)
-    {
-        var joined = string.Join(' ', scopes);
-        var claim = new Claim(OpenIddictConstants.Claims.Scope, joined);
-        claim.SetDestinations(OpenIddictConstants.Destinations.AccessToken);
-        identity.AddClaim(claim);
-    }
 }

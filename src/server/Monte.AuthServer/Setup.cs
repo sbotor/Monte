@@ -3,6 +3,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Monte.AuthServer.Configuration;
+using Monte.AuthServer.Helpers;
+using OpenIddict.Server.AspNetCore;
+using OpenIddict.Validation.AspNetCore;
+using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace Monte.AuthServer;
 
@@ -36,13 +40,20 @@ internal static class Setup
 
     private static void AddIdentity(this IServiceCollection services)
     {
-        services.AddIdentity<IdentityUser, IdentityRole>()
+        services.AddIdentity<IdentityUser, IdentityRole>(x =>
+            {
+                x.ClaimsIdentity.UserIdClaimType = Claims.Subject;
+                x.ClaimsIdentity.UserNameClaimType = Claims.Name;
+                x.ClaimsIdentity.RoleClaimType = Claims.Role;
+            })
             .AddEntityFrameworkStores<AuthDbContext>();
     }
 
     private static void ConfigureOpenIddict(this IServiceCollection services,
         TokenSettings settings)
     {
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.SigningKey));
+        
         services.AddOpenIddict()
             .AddCore(x =>
             {
@@ -54,12 +65,12 @@ internal static class Setup
                 x.AllowAuthorizationCodeFlow()
                     .AllowClientCredentialsFlow();
 
-                x.AddSigningKey(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.SigningKey)));
+                x.AddSigningKey(key);
                 
                 x.SetAuthorizationEndpointUris("connect/authorize")
                     .SetTokenEndpointUris("connect/token")
                     .SetLogoutEndpointUris("connect/logout")
-                    .SetUserinfoEndpointUris("connect/user-info");
+                    .SetUserinfoEndpointUris("connect/user-info", "connect/userinfo");
 
                 var lifetimes = settings.Lifetimes;
                 x.SetAuthorizationCodeLifetime(lifetimes.AuthCode)
@@ -69,12 +80,24 @@ internal static class Setup
                     .AddDevelopmentSigningCertificate()
                     .DisableAccessTokenEncryption();
 
-                x.RegisterScopes(OpenIddictConfig.GetScopeNames().ToArray());
+                var scopes = OpenIddictConfig.GetCustomScopeNames()
+                    .Concat(new[] { Scopes.Roles, Scopes.Profile })
+                    .ToArray();
+                x.RegisterScopes(scopes);
 
                 x.UseAspNetCore()
                     .EnableAuthorizationEndpointPassthrough()
                     .EnableTokenEndpointPassthrough()
                     .EnableLogoutEndpointPassthrough();
+                // .EnableUserinfoEndpointPassthrough();
+            })
+            .AddValidation(x =>
+            {
+                x.SetIssuer(settings.Issuer)
+                    .SetConfiguration(new() { Issuer = settings.Issuer, SigningKeys = { key } })
+                    .UseAspNetCore();
             });
+        
+        services.AddAuthentication(AuthSchemes.TokenValidation);
     }
 }

@@ -1,0 +1,10 @@
+.card {
+  width: 300px;
+  min-height: 100px;
+}
+
+.card-list {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}

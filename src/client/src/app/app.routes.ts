@@ -6,4 +6,5 @@ import { MachineListComponent } from './pages/machine-list/machine-list.componen
 export const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'machines', component: MachineListComponent, canActivate: [loggedInGuard] },
+  { path: '**', redirectTo: '' }
 ];

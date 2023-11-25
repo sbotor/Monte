@@ -3,12 +3,13 @@ import { CommonModule } from '@angular/common';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner'
 
 @Component({
-  selector: 'app-loader',
+  selector: 'app-spinner',
   standalone: true,
   imports: [CommonModule, MatProgressSpinnerModule],
-  templateUrl: './loader.component.html',
-  styleUrl: './loader.component.scss'
+  templateUrl: './spinner.component.html',
+  styleUrl: './spinner.component.scss'
 })
-export class LoaderComponent {
+export class SpinnerComponent {
   @Input() public loading = true;
+  @Input() public diameter = 100;
 }

@@ -32,6 +32,7 @@ public static class OpenIddictConfig
             DisplayName = "Monte Client",
             ClientId = appSettings.Client.ClientId,
             RedirectUris = { settings.RedirectUri },
+            PostLogoutRedirectUris = { settings.RedirectUri },
             Type = ClientTypes.Public,
             Permissions =
             {

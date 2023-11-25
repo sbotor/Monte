@@ -1,2 +1,12 @@
-<app-layout class="layout">
-</app-layout>
+<mat-toolbar class="toolbar">
+  <div class="toolbar-group">
+    <span>Monte</span>
+    <button mat-button routerLink="/machines" class="nav-button">Machines</button>
+  </div>
+  <app-spinner [loading]="!loggedIn()" [diameter]="50" class="toolbar-group">
+    <div>User: {{ user().name }}</div>
+    <button mat-button (click)="logout()">Logout</button>
+  </app-spinner>
+</mat-toolbar>
+
+<div class="content"><router-outlet></router-outlet></div>

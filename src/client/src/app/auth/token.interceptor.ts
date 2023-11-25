@@ -1,7 +1,7 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { AuthService } from './auth.service';
 import { inject } from '@angular/core';
-import { ApiService } from '../api.service';
+import { ApiService } from '../core/api.service';
 
 export const tokenInterceptor: HttpInterceptorFn = (req, next) => {
   const api = inject(ApiService);
@@ -12,7 +12,7 @@ export const tokenInterceptor: HttpInterceptorFn = (req, next) => {
   if (url.startsWith(apiUrl)) {
     const auth = inject(AuthService);
 
-    if (!auth.isLoggedIn()) {
+    if (!auth.loggedIn()) {
       return next(req);
     }
 

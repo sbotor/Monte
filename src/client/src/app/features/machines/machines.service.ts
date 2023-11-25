@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { ApiService } from '../../api.service';
+import { ApiService } from '../../core/api.service';
+import { BehaviorSubject } from 'rxjs';
 
 export interface MachineOverview {
   id: string;
@@ -11,6 +12,8 @@ export interface MachineOverview {
   providedIn: 'root'
 })
 export class MachinesService {
+
+  private readonly gettingMachines = new BehaviorSubject<boolean>(false);
 
   constructor(private readonly api: ApiService) { }
 

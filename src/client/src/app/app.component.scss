@@ -1,8 +1,29 @@
+@use '@angular/material' as mat;
+
 :host {
-  height: 100vh;
-  display: block;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
-.layout {
-  height: 100vh;
+.content {
+  padding: 10px;
+  height: 100%;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.toolbar {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 0px 20px;
+}
+
+.toolbar-group {
+  display: flex;
+  flex-direction: row;
+  gap: 50px;
 }

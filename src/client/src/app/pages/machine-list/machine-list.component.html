@@ -1,3 +1,15 @@
-<div *ngFor="let machine of machines$ | async" style="display: flex; flex-direction: column;">
-  <div>{{ machine.id }}: {{ machine.displayName }}</div>
+<div *ngIf="machines$ | async as machines; else spinner" class="card-list">
+  <mat-card *ngFor="let machine of machines">
+    <mat-card-header class="card">
+      <mat-card-title>{{ machine.displayName }}</mat-card-title>
+      <mat-card-subtitle>{{ machine.lastHeartbeat }}</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      ID: {{ machine.id }}
+    </mat-card-content>
+  </mat-card>
 </div>
+
+<ng-template #spinner>
+  <app-spinner></app-spinner>
+</ng-template>

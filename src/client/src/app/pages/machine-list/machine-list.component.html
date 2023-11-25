@@ -1,0 +1,3 @@
+<div *ngFor="let machine of machines$ | async" style="display: flex; flex-direction: column;">
+  <div>{{ machine.id }}: {{ machine.displayName }}</div>
+</div>

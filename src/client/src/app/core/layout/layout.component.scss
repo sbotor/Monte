@@ -1,0 +1,13 @@
+:host {
+  display: block;
+}
+
+.drawer {
+  width: 200px;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.drawer-container {
+  height: 100%;
+}

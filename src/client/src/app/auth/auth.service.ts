@@ -1,6 +1,13 @@
-import { Injectable, Signal, WritableSignal, computed, signal } from '@angular/core';
+import {
+  Injectable,
+  Signal,
+  WritableSignal,
+  computed,
+  signal,
+} from '@angular/core';
 import { OAuthService } from 'angular-oauth2-oidc';
 import { authCodeFlowConfig } from './authCodeFlowConfig';
+import { filter } from 'rxjs';
 
 export interface UserInfo {
   id: string;
@@ -10,22 +17,16 @@ export interface UserInfo {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
-
   public readonly loggedIn: Signal<boolean>;
 
   private readonly _user: WritableSignal<UserInfo>;
   public readonly user: Signal<UserInfo>;
 
   constructor(private readonly oauth: OAuthService) {
-    this._user = signal<UserInfo>({
-      id: '',
-      name: '',
-      role: '',
-      loggedIn: false
-    });
+    this._user = signal<UserInfo>(this.emptyUser());
 
     this.user = this._user.asReadonly();
     this.loggedIn = computed(() => this.user().loggedIn);
@@ -33,13 +34,16 @@ export class AuthService {
 
   public configure() {
     this.oauth.configure(authCodeFlowConfig);
-    this.oauth.loadDiscoveryDocumentAndTryLogin().then(_ => {
-      if (!this.oauth.hasValidAccessToken()) {
-        this.login();
-      }
 
-      this._user.set(this.extractUser());
+    this.oauth.loadDiscoveryDocumentAndLogin().then((_) => {
+      this.update();
     });
+
+    this.oauth.events
+      .pipe(filter((e) => e.type === 'token_received'))
+      .subscribe((_) => {
+        this.update();
+      });
   }
 
   public logout() {
@@ -54,16 +58,27 @@ export class AuthService {
     return this.oauth.getAccessToken();
   }
 
-  private extractUser() {
+  private update() {
     const claims = this.oauth.getIdentityClaims();
 
-    const data: UserInfo = {
-      id: claims['sub'],
-      name: claims['name'],
-      role: claims['role'],
-      loggedIn: true,
-    };
+    const data: UserInfo = !claims
+      ? this.emptyUser()
+      : {
+          id: claims['sub'],
+          name: claims['name'],
+          role: claims['role'],
+          loggedIn: true,
+        };
 
-    return data;
+    this._user.set(data);
+  }
+
+  private emptyUser(): UserInfo {
+    return {
+      id: '',
+      name: '',
+      role: '',
+      loggedIn: false,
+    };
   }
 }

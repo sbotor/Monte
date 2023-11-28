@@ -10,7 +10,7 @@ export class ApiService {
   constructor(private readonly client: HttpClient) {
   }
 
-  public get<T>(resource: string) {
-    return this.client.get<T>(this.baseUrl + resource);
+  public get<T>(resource: string, params?: any) {
+    return this.client.get<T>(this.baseUrl + resource, { params });
   }
 }

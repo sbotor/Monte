@@ -1,10 +1,11 @@
 import { Routes } from '@angular/router';
-import { HomeComponent } from './pages/home/home.component';
-import { loggedInGuard } from './auth/logged-in.guard';
-import { MachineListComponent } from './pages/machine-list/machine-list.component';
+import { MachineListComponent } from './pages';
+import { loggedInGuard } from '@auth/logged-in.guard';
+import { NotFoundComponent } from './pages/not-found/not-found.component';
 
 export const routes: Routes = [
-  { path: '', component: HomeComponent },
+  { path: '', redirectTo: 'machines', pathMatch: 'full' },
   { path: 'machines', component: MachineListComponent, canActivate: [loggedInGuard] },
-  { path: '**', redirectTo: '' }
+  { path: 'notFound', component: NotFoundComponent },
+  { path: '**', redirectTo: 'notFound' }
 ];

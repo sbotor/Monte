@@ -1,11 +1,19 @@
 import { Injectable } from '@angular/core';
-import { ApiService } from '../../core/api.service';
-import { BehaviorSubject } from 'rxjs';
+import { ApiService } from '@core/api.service';
+import { PagedResponse } from '@core/models';
 
 export interface MachineOverview {
   id: string;
   displayName: string;
   lastHeartbeat: Date;
+  created: Date;
+}
+
+export interface GetMachinesRequest {
+  page: number;
+  pageSize: number;
+  orderBy?: string;
+  orderByDesc: boolean;
 }
 
 @Injectable({
@@ -13,11 +21,9 @@ export interface MachineOverview {
 })
 export class MachinesService {
 
-  private readonly gettingMachines = new BehaviorSubject<boolean>(false);
-
   constructor(private readonly api: ApiService) { }
 
-  public getMachines() {
-    return this.api.get<MachineOverview[]>('machines');
+  public getMachines(query: GetMachinesRequest) {
+    return this.api.get<PagedResponse<MachineOverview>>('machines', query);
   }
 }

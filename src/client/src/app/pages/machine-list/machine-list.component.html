@@ -1,13 +1,32 @@
-<div *ngIf="machines$ | async as machines; else spinner" class="card-list">
-  <mat-card *ngFor="let machine of machines">
-    <mat-card-header class="card">
-      <mat-card-title>{{ machine.displayName }}</mat-card-title>
-      <mat-card-subtitle>{{ machine.lastHeartbeat }}</mat-card-subtitle>
-    </mat-card-header>
-    <mat-card-content>
-      ID: {{ machine.id }}
-    </mat-card-content>
-  </mat-card>
+<div>
+  <h1>Machines</h1>
+
+  <table *ngIf="!isLoading(); else spinner" mat-table [dataSource]="machines$">
+    <ng-container matColumnDef="displayName">
+      <th mat-header-cell *matHeaderCellDef>Name</th>
+      <td mat-cell *matCellDef="let element">{{ element.displayName }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="id">
+      <th mat-header-cell *matHeaderCellDef>ID</th>
+      <td mat-cell *matCellDef="let element">{{ element.id }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="lastHeartbeat">
+      <th mat-header-cell *matHeaderCellDef>Last heartbeat</th>
+      <td mat-cell *matCellDef="let element">{{ element.lastHeartbeat | date:'medium' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="created">
+      <th mat-header-cell *matHeaderCellDef>Created</th>
+      <td mat-cell *matCellDef="let element">{{ element.created | date:'medium' }}</td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="columns"></tr>
+    <tr mat-row *matRowDef="let row; columns: columns"></tr>
+  </table>
+  <mat-paginator [length]="pagingInfo().totalCount" [pageSize]="pagingInfo().pageSize"
+    [pageSizeOptions]="[10, 20, 50]" (page)="onPageChange($event)"></mat-paginator>
 </div>
 
 <ng-template #spinner>

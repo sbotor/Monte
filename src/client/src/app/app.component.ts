@@ -4,8 +4,8 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { RouterLink, RouterOutlet } from '@angular/router';
-import { SpinnerComponent } from './core/spinner/spinner.component';
-import { AuthService } from './auth/auth.service';
+import { AuthService } from '@auth/auth.service';
+import { SpinnerComponent } from '@components/spinner';
 
 @Component({
   selector: 'app-root',

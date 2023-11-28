@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Monte.Features.Machines.Queries;
 using Monte.WebApi.Auth;
+using Monte.WebApi.Features.Machines.Requests;
 
 namespace Monte.WebApi.Features.Machines;
 
@@ -19,6 +20,7 @@ public class MachinesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetMachines(CancellationToken cancellationToken)
-        => Ok(await _sender.Send(new GetMachines.Query(), cancellationToken));
+    public async Task<IActionResult> GetMachines([FromQuery] GetMachinesRequest request,
+        CancellationToken cancellationToken)
+        => Ok(await _sender.Send(request.ToQuery(), cancellationToken));
 }

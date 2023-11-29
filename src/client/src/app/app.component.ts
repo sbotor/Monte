@@ -23,8 +23,8 @@ import { SpinnerComponent } from '@components/spinner';
 export class AppComponent {
   title = 'monte';
 
-  public readonly loggedIn = this.auth.loggedIn;
-  public readonly user = this.auth.user;
+  public readonly loggedIn$ = this.auth.loginSuccessful$;
+  public readonly user$ = this.auth.user$;
 
   constructor(private readonly auth: AuthService) {
     this.auth.configure();

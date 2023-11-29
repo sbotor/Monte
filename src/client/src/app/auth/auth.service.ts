@@ -1,84 +1,104 @@
-import {
-  Injectable,
-  Signal,
-  WritableSignal,
-  computed,
-  signal,
-} from '@angular/core';
+import { Injectable } from '@angular/core';
 import { OAuthService } from 'angular-oauth2-oidc';
 import { authCodeFlowConfig } from './authCodeFlowConfig';
-import { filter } from 'rxjs';
+import {
+  BehaviorSubject,
+  ReplaySubject,
+  distinctUntilChanged,
+  filter,
+  switchMap,
+  tap,
+} from 'rxjs';
+import { Router } from '@angular/router';
 
 export interface UserInfo {
   id: string;
   name: string;
   role: string;
-  loggedIn: boolean;
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  public readonly loggedIn: Signal<boolean>;
+  private readonly _isLoaded = new BehaviorSubject(false);
+  public readonly isLoaded$ = this._isLoaded
+    .asObservable()
+    .pipe(distinctUntilChanged());
 
-  private readonly _user: WritableSignal<UserInfo>;
-  public readonly user: Signal<UserInfo>;
+  private readonly _isLoggedIn = new BehaviorSubject(false);
+  public readonly isLoggedIn$ = this._isLoggedIn
+    .asObservable()
+    .pipe(distinctUntilChanged());
 
-  constructor(private readonly oauth: OAuthService) {
-    this._user = signal<UserInfo>(this.emptyUser());
+  public readonly loginSuccessful$ = this.isLoaded$.pipe(
+    filter((x) => x),
+    switchMap((_) => this.isLoggedIn$)
+  );
 
-    this.user = this._user.asReadonly();
-    this.loggedIn = computed(() => this.user().loggedIn);
-  }
+  private readonly _token = new ReplaySubject<string>(1);
+  public readonly token$ = this._token
+    .asObservable()
+    .pipe(distinctUntilChanged());
+
+  private readonly _user = new ReplaySubject<UserInfo>(1);
+  public readonly user$ = this._user.asObservable();
+
+  constructor(
+    private readonly oauth: OAuthService,
+    private readonly router: Router
+  ) {}
 
   public configure() {
     this.oauth.configure(authCodeFlowConfig);
 
-    this.oauth.loadDiscoveryDocumentAndLogin().then((_) => {
-      this.update();
-    });
-
     this.oauth.events
-      .pipe(filter((e) => e.type === 'token_received'))
-      .subscribe((_) => {
-        this.update();
-      });
+      .pipe(tap(console.log))
+      .subscribe((_) => this.update(false));
+
+    this.oauth.loadDiscoveryDocumentAndTryLogin().then((_) => {
+      this._isLoaded.next(true);
+
+      this.update(true);
+
+      const state = this.oauth.state;
+      if (state && state.length > 0) {
+        this.router.navigateByUrl(state);
+      }
+    });
   }
 
   public logout() {
     this.oauth.logOut();
   }
 
-  public login() {
-    this.oauth.initCodeFlow();
+  public login(returnUrl?: string) {
+    this.oauth.initCodeFlow(returnUrl || this.router.url);
   }
 
-  public getToken() {
-    return this.oauth.getAccessToken();
-  }
+  private update(loadUserProfile: boolean) {
+    const hasValidToken = this.oauth.hasValidAccessToken();
+    this._isLoggedIn.next(hasValidToken);
 
-  private update() {
+    if (hasValidToken) {
+      if (loadUserProfile) {
+        this.oauth.loadUserProfile();
+      }
+      this._token.next(this.oauth.getAccessToken());
+    }
+
     const claims = this.oauth.getIdentityClaims();
 
-    const data: UserInfo = !claims
-      ? this.emptyUser()
-      : {
-          id: claims['sub'],
-          name: claims['name'],
-          role: claims['role'],
-          loggedIn: true,
-        };
+    if (!claims) {
+      return;
+    }
 
-    this._user.set(data);
-  }
-
-  private emptyUser(): UserInfo {
-    return {
-      id: '',
-      name: '',
-      role: '',
-      loggedIn: false,
+    const data: UserInfo = {
+      id: claims['sub'],
+      name: claims['name'],
+      role: claims['role'],
     };
+
+    this._user.next(data);
   }
 }

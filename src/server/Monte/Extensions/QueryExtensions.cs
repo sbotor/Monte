@@ -26,4 +26,9 @@ public static class QueryExtensions
 
         return new(items, paging, count);
     }
+
+    public static IQueryable<T> Where<T>(this IQueryable<T> query,
+        Expression<Func<T, bool>> predicate,
+        bool condition)
+        => condition ? query.Where(predicate) : query;
 }

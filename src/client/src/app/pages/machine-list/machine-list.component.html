@@ -23,7 +23,7 @@
     </ng-container>
 
     <tr mat-header-row *matHeaderRowDef="columns"></tr>
-    <tr mat-row *matRowDef="let row; columns: columns"></tr>
+    <tr mat-row (click)="onClickedRow(row.id)" *matRowDef="let row; columns: columns"></tr>
   </table>
   <mat-paginator [length]="pagingInfo().totalCount" [pageSize]="pagingInfo().pageSize"
     [pageSizeOptions]="[10, 20, 50]" (page)="onPageChange($event)"></mat-paginator>

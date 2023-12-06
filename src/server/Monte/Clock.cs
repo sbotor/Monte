@@ -11,5 +11,5 @@ public class Clock : IClock
 {
     public DateTime Now => DateTime.UtcNow;
     public DateTime UtcNow => DateTime.UtcNow;
-    public DateTime Today => Now.Date;
+    public DateTime Today => UtcNow.Date;
 }

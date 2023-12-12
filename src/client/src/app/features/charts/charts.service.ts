@@ -18,11 +18,13 @@ export interface DateRange {
 export class ChartsService {
   constructor(private readonly api: ApiService, private readonly clock: ClockService) {}
 
-  public getAvgCpuUsage(machineId: string, range: DateRange) {
+  public getAvgCpuUsage(machineId: string, range: DateRange, core: number | null = null) {
     const params = {
       dateFrom: this.clock.toUtcString(range.dateFrom),
       dateTo: this.clock.toUtcString(range.dateTo),
+      core,
     }
+
     return this.api.get<ChartData<number>>(`charts/${machineId}/cpu/avg`, params);
   }
 }

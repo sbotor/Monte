@@ -9,6 +9,8 @@ import { SpinnerComponent } from '@components/spinner';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatCardModule } from '@angular/material/card';
 import { Subject, takeUntil } from 'rxjs';
+import { MatDividerModule } from '@angular/material/divider';
+import { CpuCoreSelectComponent } from '@features/charts/cpu-core-select/cpu-core-select.component';
 
 @Component({
   selector: 'app-resource-chart',
@@ -20,6 +22,8 @@ import { Subject, takeUntil } from 'rxjs';
     SpinnerComponent,
     MatSidenavModule,
     MatCardModule,
+    MatDividerModule,
+    CpuCoreSelectComponent,
   ],
   templateUrl: './resource-chart.component.html',
   styleUrl: './resource-chart.component.scss',
@@ -29,6 +33,7 @@ export class ResourceChartComponent implements OnInit, OnDestroy {
 
   public readonly chartOptions = this.params.chartOptions;
   public readonly isLoading = this.params.isLoading;
+  public readonly chartType = this.params.chartType;
 
   private _id = '';
 

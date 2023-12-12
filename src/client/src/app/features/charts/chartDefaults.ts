@@ -1,11 +1,11 @@
-import { ChartOptions } from './models';
+import { ChartOptions, ChartType } from './models';
 
-export interface ChartDefaults {
-  avgCpuUsage: () => ChartOptions;
-}
+export type ChartDefaults = {
+  [K in ChartType]: () => ChartOptions;
+};
 
 export const chartDefaults: ChartDefaults = {
-  avgCpuUsage: () => {
+  averageCpuUsage: () => {
     return {
       series: [{ name: 'values', data: [] }],
       chart: {
@@ -19,7 +19,7 @@ export const chartDefaults: ChartDefaults = {
       yAxis: { min: 0, max: 100 },
       theme: { mode: 'dark' },
     };
-  },
+  }
 } as const;
 
 export default chartDefaults;

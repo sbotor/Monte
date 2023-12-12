@@ -7,3 +7,10 @@ export interface ChartOptions {
   yAxis: ApexYAxis;
   theme: ApexTheme;
 }
+
+export type ChartType = 'averageCpuUsage';
+
+export type ChartParamKeys = 'cpuCore';
+export type ChartParamMap = {
+  [K in ChartParamKeys]?: any
+};

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -6,6 +6,7 @@ import { DateRange } from '../charts.service';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ClockService } from '@core/clock.service';
 import { MatNativeDateModule } from '@angular/material/core';
+import { ChartsParamsService } from '../charts-params.service';
 
 @Component({
   selector: 'app-chart-date-picker',
@@ -25,27 +26,20 @@ export class ChartDatePickerComponent implements OnInit {
     start: new FormControl<Date | null>(null),
     end: new FormControl<Date | null>(null),
   });
-  private _prevValues: DateRange = undefined!;
 
-  @Input() initialDateFrom: Date | null = null;
-  @Input() initialDateTo: Date | null = null;
+  private _prevValues: DateRange = {...this.params.dateRange()};
 
-  @Output() changed = new EventEmitter<DateRange>();
-
-  constructor(private readonly clock: ClockService) {}
+  constructor(
+    private readonly clock: ClockService,
+    private readonly params: ChartsParamsService
+  ) {}
 
   ngOnInit(): void {
     const today = this.clock.today();
 
-    const values = {
-      dateFrom: this.initialDateFrom || today,
-      dateTo: this.initialDateTo || this.clock.addDays(today, 1),
-    };
-    this._prevValues = values;
-
     this.range.setValue({
-      start: values.dateFrom,
-      end: values.dateTo,
+      start: this._prevValues.dateFrom,
+      end: this._prevValues.dateTo,
     });
   }
 
@@ -66,9 +60,12 @@ export class ChartDatePickerComponent implements OnInit {
       return;
     }
 
-    this.changed.emit({
+    const newValues = {
       dateFrom: values.start,
       dateTo: values.end,
-    });
+    };
+    this._prevValues = newValues;
+
+    this.params.setDateRange(newValues);
   }
 }

@@ -20,7 +20,9 @@ public class CoreUsageEntry
 {
     public int Ordinal { get; set; }
     public double PercentUsed { get; set; }
+    
     public uint EntryId { get; set; }
+    public MetricsEntry Entry { get; set; } = null!;
 }
 
 public class CpuUsageEntry
@@ -58,7 +60,7 @@ internal class CoreUsageEntryConfiguration : IEntityTypeConfiguration<CoreUsageE
     {
         builder.HasKey(x => new { x.EntryId, x.Ordinal });
         
-        builder.HasOne<MetricsEntry>()
+        builder.HasOne(x => x.Entry)
             .WithMany(x => x.Cores)
             .HasForeignKey(x => x.EntryId);
     }

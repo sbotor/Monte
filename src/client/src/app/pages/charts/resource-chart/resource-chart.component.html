@@ -1,0 +1,17 @@
+<mat-drawer-container class="container">
+  <mat-drawer class="drawer" mode="side" opened>
+    <div class="drawer-content">
+      <app-chart-date-picker></app-chart-date-picker>
+    </div>
+  </mat-drawer>
+  <mat-drawer-content>
+    <mat-card *ngIf="!isLoading(); else spinner" class="chart-card">
+      <apx-chart class="chart" [series]="chartOptions().series" [chart]="chartOptions().chart"
+        [xaxis]="chartOptions().xAxis" [theme]="chartOptions().theme" [yaxis]="chartOptions().yAxis"></apx-chart>
+    </mat-card>
+  </mat-drawer-content>
+</mat-drawer-container>
+
+<ng-template #spinner>
+  <app-spinner></app-spinner>
+</ng-template>

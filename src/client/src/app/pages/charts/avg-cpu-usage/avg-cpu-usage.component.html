@@ -1,9 +1,0 @@
-<app-chart-date-picker [initialDateFrom]="range().dateFrom" [initialDateTo]="range().dateTo"
-  (changed)="onDateChange($event)"></app-chart-date-picker>
-<div *ngIf="!isLoading()">
-  <apx-chart [series]="chartOptions().series" [chart]="chartOptions().chart" [xaxis]="chartOptions().xAxis"></apx-chart>
-</div>
-
-<ng-template>
-  <app-spinner></app-spinner>
-</ng-template>

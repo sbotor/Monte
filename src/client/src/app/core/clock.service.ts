@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { DateRange } from '@features/charts/charts.service';
 
 @Injectable({
   providedIn: 'root'
@@ -6,6 +7,14 @@ import { Injectable } from '@angular/core';
 export class ClockService {
   public today() {
     return new Date(new Date().toDateString());
+  }
+
+  public todayRange() {
+    const today = this.today();
+    return {
+      dateFrom: today,
+      dateTo: today
+    } as DateRange;
   }
 
   public addDays(date: Date, count = 1) {

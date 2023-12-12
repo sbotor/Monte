@@ -10,4 +10,15 @@ public class ChartData<T>
         Labels = labels.ToArray();
         Values = new T[Labels.Length];
     }
+
+    public void Collect(IReadOnlyDictionary<DateTime, T> values, T defaultValue)
+    {
+        var i = 0;
+
+        foreach (var date in Labels)
+        {
+            Values[i] = values.GetValueOrDefault(date, defaultValue);
+            i++;
+        }
+    }
 }

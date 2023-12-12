@@ -2,7 +2,7 @@
 
 public enum DateTimeDiffKind : byte
 {
-    Quarters,
+    QuarterHours,
     Days,
     Months
 }
@@ -25,6 +25,17 @@ public static class DateTimeExtensions
         DateTime to)
         => from.EnumerateUntil(to, x => x.AddMonths(1));
 
+    public static IEnumerable<DateTime> EnumerateUntil(this DateTime from,
+        DateTime to,
+        DateTimeDiffKind diffKind)
+        => diffKind switch
+        {
+            DateTimeDiffKind.QuarterHours => from.EnumerateMinutesUntil(to, 15),
+            DateTimeDiffKind.Days => from.EnumerateDaysUntil(to),
+            DateTimeDiffKind.Months => from.BeginningOfTheMonth().EnumerateMonthsUntil(to),
+            _ => throw new InvalidOperationException()
+        };
+
     private static IEnumerable<DateTime> EnumerateUntil(this DateTime from,
         DateTime to,
         Func<DateTime, DateTime> next)
@@ -37,10 +48,10 @@ public static class DateTimeExtensions
         }
     }
 
-    public static DateTime TruncateSeconds(this DateTime dt)
-        => new(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, 0, dt.Kind);
+    public static DateTime RoundToNextDay(this DateTime dt)
+        => dt.Date.AddDays(1);
 
-    public static DateTime MatchQuarter(this DateTime dt)
+    public static DateTime MatchQuarterHour(this DateTime dt)
     {
         var totalSeconds = (dt.Minute * 60) + dt.Second;
         
@@ -61,7 +72,7 @@ public static class DateTimeExtensions
 
         return Math.Abs(diff.Days) switch
         {
-            <= 1 => DateTimeDiffKind.Quarters,
+            <= 1 => DateTimeDiffKind.QuarterHours,
             <= 30 => DateTimeDiffKind.Days,
             _ => DateTimeDiffKind.Months
         };

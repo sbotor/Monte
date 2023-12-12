@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Monte.Cqrs;
+﻿using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Monte.Models.Exceptions;
 using Monte.Services;
 
@@ -7,7 +7,7 @@ namespace Monte.Features.Metrics.Commands;
 
 public static class ReportMetrics
 {
-    public record Command(Command.CpuUsage Cpu, Command.MemoryUsage Memory) : ICommand
+    public record Command(Command.CpuUsage Cpu, Command.MemoryUsage Memory) : IRequest
     {
         public class CpuUsage
         {
@@ -24,7 +24,7 @@ public static class ReportMetrics
         }
     }
 
-    internal class Handler : ICommandHandler<Command>
+    internal class Handler : IRequestHandler<Command>
     {
         private readonly MonteDbContext _dbContext;
         private readonly IAgentContextProvider _agentContextProvider;

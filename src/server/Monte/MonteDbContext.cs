@@ -9,6 +9,7 @@ public class MonteDbContext : DbContext
 {
     public DbSet<Machine> Machines => Set<Machine>();
     public DbSet<MetricsEntry> MetricsEntries => Set<MetricsEntry>();
+    public DbSet<CoreUsageEntry> CoreUsageEntries => Set<CoreUsageEntry>();
     
     public MonteDbContext(DbContextOptions<MonteDbContext> options)
         : base(options)

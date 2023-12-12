@@ -1,5 +1,5 @@
+using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Monte.Cqrs;
 using Monte.Extensions;
 using Monte.Features.Machines.Models;
 using Monte.Models;
@@ -8,9 +8,9 @@ namespace Monte.Features.Machines.Queries;
 
 public static class GetMachines
 {
-    public record Query(Paging Paging, Sorting Sorting) : IQuery<PagedResponse<MachineOverview>>;
+    public record Query(Paging Paging, Sorting Sorting) : IRequest<PagedResponse<MachineOverview>>;
 
-    internal class Handler : IQueryHandler<Query, PagedResponse<MachineOverview>>
+    internal class Handler : IRequestHandler<Query, PagedResponse<MachineOverview>>
     {
         private readonly MonteDbContext _context;
 

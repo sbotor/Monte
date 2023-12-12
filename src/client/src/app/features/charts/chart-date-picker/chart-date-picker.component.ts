@@ -27,7 +27,7 @@ export class ChartDatePickerComponent implements OnInit {
     end: new FormControl<Date | null>(null),
   });
 
-  private _prevValues: DateRange = {...this.params.dateRange()};
+  private _prevValues: DateRange = { ...this.params.dateRange() };
 
   constructor(
     private readonly clock: ClockService,

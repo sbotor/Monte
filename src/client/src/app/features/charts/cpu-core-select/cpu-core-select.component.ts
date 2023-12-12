@@ -15,7 +15,6 @@ export class CpuCoreSelectComponent {
   public readonly chartType = this.params.chartType;
   public readonly cpuCore = computed(() => {
     const params = this.params.paramMap();
-    console.log(params);
     return params.cpuCore || null;
   });
 

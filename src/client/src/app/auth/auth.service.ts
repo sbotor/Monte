@@ -7,7 +7,6 @@ import {
   distinctUntilChanged,
   filter,
   switchMap,
-  tap,
 } from 'rxjs';
 import { Router } from '@angular/router';
 
@@ -52,9 +51,7 @@ export class AuthService {
   public configure() {
     this.oauth.configure(authCodeFlowConfig);
 
-    this.oauth.events
-      .pipe(tap(console.log))
-      .subscribe((_) => this.update(false));
+    this.oauth.events.subscribe((_) => this.update(false));
 
     this.oauth.loadDiscoveryDocumentAndTryLogin().then((_) => {
       this._isLoaded.next(true);

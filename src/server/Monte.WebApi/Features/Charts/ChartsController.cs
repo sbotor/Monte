@@ -1,11 +1,14 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Monte.WebApi.Auth;
 using Monte.WebApi.Features.Charts.Requests;
 
 namespace Monte.WebApi.Features.Charts;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = AuthConsts.Roles.MonteAdmin)]
 public class ChartsController : ControllerBase
 {
     private readonly ISender _sender;

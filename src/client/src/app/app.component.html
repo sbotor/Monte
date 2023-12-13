@@ -3,14 +3,17 @@
     <span>Monte</span>
     <button mat-button routerLink="machines" class="nav-button">Machines</button>
   </div>
-  <app-spinner [loaded]="loggedIn$" [diameter]="50" class="toolbar-group">
-    <div *ngIf="user$ | async; let user" class="toolbar-group">
-      <div>User: {{ user.name }}</div>
-      <button mat-button (click)="logout()">Logout</button>
-    </div>
-  </app-spinner>
+  <div *ngIf="user$ | async; let user; else spinner" class="toolbar-group">
+    <div>User: {{ user.name }}</div>
+    <button mat-button (click)="logout()">Logout</button>
+  </div>
 </mat-toolbar>
 
 <div class="content">
   <router-outlet></router-outlet>
 </div>
+
+<ng-template #spinner>
+  <app-spinner [diameter]="50">
+  </app-spinner>
+</ng-template>

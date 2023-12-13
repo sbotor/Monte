@@ -20,25 +20,30 @@ public class ExceptionHandlingMiddleware
         }
         catch (Exception exception)
         {
-            string? body;
+            var resp = context.Response;
+            Task responseTask;
             HttpStatusCode code;
             
             switch (exception)
             {
                 case NotFoundException notFound:
                     code = HttpStatusCode.NotFound;
-                    body = notFound.Message;
+                    responseTask = resp.WriteAsJsonAsync(notFound.Message);
+                    break;
+                case ValidationException validation:
+                    code = HttpStatusCode.BadRequest;
+                    responseTask = resp.WriteAsJsonAsync(validation.ErrorCodes);
                     break;
                 case BadRequestException badRequest:
                     code = HttpStatusCode.BadRequest;
-                    body = badRequest.Message;
+                    responseTask = resp.WriteAsJsonAsync(badRequest.Message);
                     break;
                 default:
                     throw;
             }
 
             context.Response.StatusCode = (int)code;
-            await context.Response.WriteAsJsonAsync(body);
+            await responseTask;
         }
     }
 }

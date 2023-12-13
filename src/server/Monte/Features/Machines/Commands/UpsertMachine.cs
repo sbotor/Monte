@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Monte.Cqrs;
+﻿using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Monte.Models.Exceptions;
 using Monte.Services;
 
@@ -7,9 +7,9 @@ namespace Monte.Features.Machines.Commands;
 
 public static class UpsertMachine
 {
-    public record Command(Machine.CpuInfo Cpu, Machine.MemoryInfo Memory) : ICommand<string>;
+    public record Command(Machine.CpuInfo Cpu, Machine.MemoryInfo Memory) : IRequest<string>;
 
-    internal class Handler : ICommandHandler<Command, string>
+    internal class Handler : IRequestHandler<Command, string>
     {
         private readonly MonteDbContext _context;
         private readonly IAgentContextProvider _agentContextProvider;

@@ -8,6 +8,10 @@ import { tokenInterceptor } from './auth/token.interceptor';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { DATE_PIPE_DEFAULT_OPTIONS } from '@angular/common';
 
+const opts = Intl.DateTimeFormat().resolvedOptions();
+const timeZone = opts.timeZone;
+const locale = opts.locale;
+
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
@@ -17,9 +21,9 @@ export const appConfig: ApplicationConfig = {
     {
       provide: DATE_PIPE_DEFAULT_OPTIONS,
       useValue: {
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        locale: Intl.DateTimeFormat().resolvedOptions().locale,
+        timezone: timeZone,
+        locale: locale,
       },
-    },
+    }
   ],
 };

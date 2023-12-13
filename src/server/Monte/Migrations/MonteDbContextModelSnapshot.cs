@@ -60,7 +60,7 @@ namespace Monte.Migrations
 
                     b.HasKey("EntryId", "Ordinal");
 
-                    b.ToTable("CoreUsageEntry");
+                    b.ToTable("CoreUsageEntries");
                 });
 
             modelBuilder.Entity("Monte.Features.Metrics.MetricsEntry", b =>
@@ -139,11 +139,13 @@ namespace Monte.Migrations
 
             modelBuilder.Entity("Monte.Features.Metrics.CoreUsageEntry", b =>
                 {
-                    b.HasOne("Monte.Features.Metrics.MetricsEntry", null)
+                    b.HasOne("Monte.Features.Metrics.MetricsEntry", "Entry")
                         .WithMany("Cores")
                         .HasForeignKey("EntryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Entry");
                 });
 
             modelBuilder.Entity("Monte.Features.Metrics.MetricsEntry", b =>

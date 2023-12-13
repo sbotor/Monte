@@ -1,4 +1,1 @@
-<ng-content *ngIf="isLoaded$ | async; else spinner"></ng-content>
-<ng-template #spinner>
-  <mat-progress-spinner [mode]="'indeterminate'" [diameter]="diameter"></mat-progress-spinner>
-</ng-template>
+<mat-progress-spinner [mode]="'indeterminate'" [diameter]="diameter"></mat-progress-spinner>

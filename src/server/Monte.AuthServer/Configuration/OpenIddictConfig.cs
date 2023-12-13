@@ -99,8 +99,31 @@ public static class OpenIddictConfig
                 Permissions.ResponseTypes.Code,
                 
                 Permissions.Scopes.Roles,
+                Permissions.Scopes.Profile,
                 Permissions.Prefixes.Scope + AuthConsts.Scopes.MonteMainApi,
                 Permissions.Prefixes.Scope + AuthConsts.Scopes.MonteAgentApi
+            }
+        };
+        
+        yield return new()
+        {
+            ClientId = "swagger-ui",
+            RedirectUris = { new("https://localhost:7048/swagger/oauth2-redirect.html") },
+            Type = ClientTypes.Public,
+            Permissions =
+            {
+                Permissions.Endpoints.Authorization,
+                Permissions.Endpoints.Token,
+                Permissions.Endpoints.Introspection,
+                Permissions.Endpoints.Logout,
+                
+                Permissions.GrantTypes.AuthorizationCode,
+                
+                Permissions.ResponseTypes.Code,
+                
+                Permissions.Scopes.Roles,
+                Permissions.Scopes.Profile,
+                Permissions.Prefixes.Scope + AuthConsts.Scopes.MonteMainApi,
             }
         };
     }

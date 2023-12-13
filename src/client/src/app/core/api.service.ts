@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
 @Injectable({
@@ -11,6 +11,18 @@ export class ApiService {
   }
 
   public get<T>(resource: string, params?: any) {
+    if (params) {
+      let httpParams = new HttpParams();
+      Object.keys(params).forEach(key => {
+        const value = params[key];
+        if (value !== undefined && value !== null) {
+          httpParams = httpParams.append(key, value);
+        }
+      });
+
+      params = httpParams;
+    }
+
     return this.client.get<T>(this.baseUrl + resource, { params });
   }
 }

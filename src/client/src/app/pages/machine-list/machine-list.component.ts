@@ -10,6 +10,7 @@ import {
 } from '@features/machines/machines.service';
 import { PagingInfo } from '@core/models';
 import { SpinnerComponent } from '@components/spinner';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-machine-list',
@@ -37,7 +38,7 @@ export class MachineListComponent implements OnInit, OnDestroy {
 
   public readonly columns = ['displayName', 'id', 'lastHeartbeat', 'created'];
 
-  constructor(private readonly api: MachinesService) {}
+  constructor(private readonly api: MachinesService, private readonly router: Router) {}
 
   ngOnDestroy(): void {
     this.destroyed$.next();
@@ -56,6 +57,10 @@ export class MachineListComponent implements OnInit, OnDestroy {
     });
 
     this.fetchData();
+  }
+
+  public onClickedRow(id: string) {
+    this.router.navigate(['machines', id, 'cpu']);
   }
 
   private fetchData() {

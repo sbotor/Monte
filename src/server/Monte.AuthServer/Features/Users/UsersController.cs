@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -26,13 +27,13 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> CreateRootAdmin(CreateUserRequest request)
     {
         if (_userManager.GetUsersInRoleAsync(AuthConsts.Roles.MonteAdmin).Result.Any())
-            return BadRequest("Cannot create admin, becouse an admin already exists in the system.");
+            return BadRequest("Couldn't create admin, becouse an admin already exists in the system.");
 
         return await UserCreation(request, AuthConsts.Roles.MonteAdmin);
     }
 
     [HttpPost("user")]
-    //[Authorize]
+    [Authorize(Roles = AuthConsts.Roles.MonteAdmin)]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateUser(CreateUserRequest request)
@@ -41,7 +42,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet]
-    //[Authorize]
+    [Authorize(Roles = AuthConsts.Roles.MonteAdmin)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetUsers()
     {
@@ -57,7 +58,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpDelete]
-    //[Authorize]
+    [Authorize(Roles = AuthConsts.Roles.MonteAdminOrUser)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteUser(string Id)
@@ -75,7 +76,7 @@ public class UsersController : ControllerBase
 
 
     [HttpPatch("password")]
-    //[Authorize]
+    [Authorize(Roles = AuthConsts.Roles.MonteAdminOrUser)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -111,7 +112,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpPatch("username")]
-    //[Authorize]
+    [Authorize(Roles = AuthConsts.Roles.MonteAdminOrUser)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

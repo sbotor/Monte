@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Monte.WebApi", "Monte.WebAp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Monte", "Monte\Monte.csproj", "{42C9F0BE-19E1-4386-9D41-D99A5DFF92B0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Monte.Tests", "Monte.Tests\Monte.Tests.csproj", "{C1E52518-E38D-4658-AF82-774659B2A8EE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{42C9F0BE-19E1-4386-9D41-D99A5DFF92B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{42C9F0BE-19E1-4386-9D41-D99A5DFF92B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{42C9F0BE-19E1-4386-9D41-D99A5DFF92B0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C1E52518-E38D-4658-AF82-774659B2A8EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1E52518-E38D-4658-AF82-774659B2A8EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1E52518-E38D-4658-AF82-774659B2A8EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1E52518-E38D-4658-AF82-774659B2A8EE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

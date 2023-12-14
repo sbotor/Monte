@@ -1,9 +1,12 @@
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Monte.Behaviors;
+
+[assembly: InternalsVisibleTo("Monte.Tests")]
 
 namespace Monte;
 

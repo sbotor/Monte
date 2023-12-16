@@ -14,6 +14,11 @@ internal static class AuthConsts
         public const string MonteAdmin = "monte_admin";
         public const string MonteUser = "monte_user";
 
-        public const string MonteAdminOrUser = MonteAdmin + "," + MonteUser;
+    }
+
+    public static class RoleGroups
+    {
+        public const string MonteAdminOrUser = Roles.MonteAdmin + "," + Roles.MonteUser;
+
     }
 }

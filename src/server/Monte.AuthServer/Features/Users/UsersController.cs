@@ -46,17 +46,17 @@ public class UsersController : ControllerBase
         return await _userService.GetUsers();
     }
 
-    [HttpDelete]
+    [HttpDelete("{userId}")]
     [Authorize(Roles = AuthConsts.RoleGroups.MonteAdminOrUser)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeleteUser(string Id)
+    public async Task<IActionResult> DeleteUser(string userId)
     {
-        return await _userService.DeleteUser(Id);
+        return await _userService.DeleteUser(userId);
     }
 
 
-    [HttpPatch("password")]
+    [HttpPatch("{userId}/password")]
     [Authorize(Roles = AuthConsts.RoleGroups.MonteAdminOrUser)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -66,7 +66,7 @@ public class UsersController : ControllerBase
         return await _userService.ChangePassword(userId, oldPassword, newPassword);
     }
 
-    [HttpPatch("username")]
+    [HttpPatch("{userId}/username")]
     [Authorize(Roles = AuthConsts.RoleGroups.MonteAdminOrUser)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

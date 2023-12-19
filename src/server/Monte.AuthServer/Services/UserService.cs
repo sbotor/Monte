@@ -61,7 +61,7 @@ public class UserService : IUserService
             await _userManager.DeleteAsync(user);
             throw;
         }
-        return new CreatedResult(String.Empty, new UserDetails() { Id = user.Id, Name = user.UserName });
+        return new CreatedResult(string.Empty, new UserDetails() { Id = user.Id, Name = user.UserName });
     }
     
     public async Task<IActionResult> ChangeUsername(string userId, string newUsername)

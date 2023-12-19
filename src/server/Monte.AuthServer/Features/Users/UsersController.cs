@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Monte.AuthServer.Features.Users.Models;
 using Monte.AuthServer.Helpers;
@@ -11,13 +10,11 @@ namespace Monte.AuthServer.Features.Users;
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
-    //private readonly UserManager<IdentityUser> _userManager;
     private readonly IUserService _userService;
 
-    public UsersController(UserManager<IdentityUser> userManager)
+    public UsersController(IUserService userService)
     {
-        //_userManager = userManager;
-        _userService = new UserService(userManager);
+        _userService = userService;
     }
 
     [HttpPost("root")]

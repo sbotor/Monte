@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using Monte.AuthServer.Features.Users.Models;
 using Monte.AuthServer.Helpers;
 using Monte.AuthServer.Services;
+using OpenIddict.Abstractions;
 
 namespace Monte.AuthServer.Features.Users;
 
@@ -23,7 +26,16 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateRootAdmin(CreateUserRequest request)
     {
-        return await _userService.UserCreation(request, AuthConsts.Roles.MonteAdmin);
+        var result = await _userService.CreateUser(request, AuthConsts.Roles.MonteAdmin);
+        if (result.ErrType == Result.ErrorType.None)
+        {
+            var value = ((Result<UserDetails>)result).Object;
+            return Created(Request.Path, value);
+        }
+        else
+        {
+            return BadRequest(result.ErrorMessage);
+        }
     }
 
     [HttpPost]
@@ -32,7 +44,16 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateUser(CreateUserRequest request)
     {
-        return await _userService.UserCreation(request, AuthConsts.Roles.MonteUser);
+        var result = await _userService.CreateUser(request, AuthConsts.Roles.MonteUser);
+        if (result.ErrType == Result.ErrorType.None)
+        {
+            var value = ((Result<UserDetails>)result).Object;
+            return Created(Request.Path, value);
+        }
+        else
+        {
+            return BadRequest(result.ErrorMessage);
+        }
     }
 
     [HttpGet]
@@ -40,36 +61,109 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetUsers()
     {
-        return await _userService.GetUsers();
+        var result = await _userService.GetUsers();
+        if (result.ErrType == Result.ErrorType.None)
+        {
+            var value = ((Result<IEnumerable<UserDetails>>)result).Object;
+            return Ok(value);
+        }
+        else
+        {
+            return BadRequest(result.ErrorMessage);
+        }
     }
 
     [HttpDelete("{userId}")]
-    [Authorize(Roles = AuthConsts.RoleGroups.MonteAdminOrUser)]
+    [Authorize(Roles = AuthConsts.Roles.MonteAdmin)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteUser(string userId)
     {
-        return await _userService.DeleteUser(userId);
+        var result = await _userService.DeleteUser(userId);
+        if (result.ErrType == Result.ErrorType.None)
+        {
+            return NoContent();
+        }
+        else
+        {
+            return BadRequest(result.ErrorMessage);
+        }
     }
 
 
-    [HttpPatch("{userId}/password")]
+    [HttpPatch("password")]
     [Authorize(Roles = AuthConsts.RoleGroups.MonteAdminOrUser)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> ChangePassword(string userId, string oldPassword, string newPassword)
+    public async Task<IActionResult> ChangePassword(string? userId, string oldPassword, string newPassword)
     {
-        return await _userService.ChangePassword(userId, oldPassword, newPassword);
+        var isAdmin = HttpContext.User.IsInRole(AuthConsts.Roles.MonteAdmin);
+
+        var RequesterId = HttpContext.User.GetClaim("sub");
+
+        Result? result;
+        if(isAdmin && !userId.IsNullOrEmpty())
+        {
+            result = await _userService.ChangePassword(userId!, oldPassword, newPassword);
+        }
+        else
+        {
+            if (RequesterId != null)
+                result = await _userService.ChangePassword(RequesterId, oldPassword, newPassword);
+            else
+                return BadRequest("The request does not contain information about the user");
+        }
+
+        if (result.ErrType == Result.ErrorType.None)
+        {
+            return NoContent();
+        }
+        else if (result.ErrType == Result.ErrorType.NotFound)
+        {
+            return NotFound(result.ErrorMessage);
+        }
+        else
+        {
+            return BadRequest(result.ErrorMessage);
+        }
     }
 
-    [HttpPatch("{userId}/username")]
+    [HttpPatch("username")]
     [Authorize(Roles = AuthConsts.RoleGroups.MonteAdminOrUser)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> ChangeUsername(string userId, string newUsername)
+    public async Task<IActionResult> ChangeUsername([FromQuery] string? userId, string newUsername)
     {
-        return await _userService.ChangeUsername(userId, newUsername);
+        var isAdmin = HttpContext.User.IsInRole(AuthConsts.Roles.MonteAdmin);
+        var RequesterId = HttpContext.User.GetClaim("sub");
+
+        Result? result;
+        if (isAdmin && !userId.IsNullOrEmpty())
+        {
+            result = await _userService.ChangeUsername(userId!, newUsername);
+        }
+        else
+        {
+            if (RequesterId != null)
+                result = await _userService.ChangeUsername(RequesterId, newUsername);
+            else
+                return BadRequest("The request does not contain information about the user");
+        }
+
+        if (result.ErrType == Result.ErrorType.None)
+        {
+            var value = ((Result<UserDetails>)result).Object;
+            return Ok(value);
+        }
+        else if (result.ErrType == Result.ErrorType.NotFound)
+        {
+            return NotFound(result.ErrorMessage);
+        }
+        else
+        {
+            return BadRequest(result.ErrorMessage);
+        }
     }
 }

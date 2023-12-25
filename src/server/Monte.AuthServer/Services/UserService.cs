@@ -69,29 +69,29 @@ public class UserService : IUserService
         return new Result<UserDetails>(response);
     }
     
-    public async Task<Result<UserDetails>> ChangeUsername(string userId, string newUsername)
+    public async Task<Result<UserDetails>> ChangeUsername(ChangeUsernameRequest request)
     {
-        if (string.IsNullOrEmpty(newUsername) || string.IsNullOrEmpty(userId))
+        if (string.IsNullOrEmpty(request.NewUsername) || string.IsNullOrEmpty(request.UserId))
         {
             return new Result<UserDetails>("Invalid credentials.", Result.ErrorType.BadRequest);
         }
 
-        var existingUser = await _userManager.FindByNameAsync(newUsername);
+        var existingUser = await _userManager.FindByNameAsync(request.NewUsername);
         if (existingUser is not null)
         {
             return new Result<UserDetails>("This username is already taken.", Result.ErrorType.BadRequest);
         }
 
-        var usr = await _userManager.FindByIdAsync(userId);
+        var usr = await _userManager.FindByIdAsync(request.UserId);
         if (usr == null)
         {
-            return new Result<UserDetails>($"User with the id '{userId}' was not found.", Result.ErrorType.NotFound);
+            return new Result<UserDetails>($"User with the id '{request.UserId}' was not found.", Result.ErrorType.NotFound);
         }
 
 
         try
         {
-            ThrowIfError(await _userManager.SetUserNameAsync(usr, newUsername));
+            ThrowIfError(await _userManager.SetUserNameAsync(usr, request.NewUsername));
         }
         catch (IdentityErrorException e)
         {
@@ -107,24 +107,24 @@ public class UserService : IUserService
         return new Result<UserDetails>(response);
     }
     
-    public async Task<Result> ChangePassword(string userId, string oldPassword, string newPassword)
+    public async Task<Result> ChangePassword(ChangePasswordRequest request)
     {
-        if (string.IsNullOrEmpty(userId) ||
-            string.IsNullOrEmpty(oldPassword) ||
-            string.IsNullOrEmpty(newPassword))
+        if (string.IsNullOrEmpty(request.UserId) ||
+            string.IsNullOrEmpty(request.OldPassword) ||
+            string.IsNullOrEmpty(request.NewPassword))
         {
             return new Result("Invalid credentials.", Result.ErrorType.BadRequest);
         }
 
-        var usr = await _userManager.FindByIdAsync(userId);
+        var usr = await _userManager.FindByIdAsync(request.UserId);
         if (usr == null)
         {
-            return new Result($"User with the id '{userId}' was not found.", Result.ErrorType.NotFound);
+            return new Result($"User with the id '{request.UserId}' was not found.", Result.ErrorType.NotFound);
         }
 
         try
         {
-            ThrowIfError(await _userManager.ChangePasswordAsync(usr, oldPassword, newPassword));
+            ThrowIfError(await _userManager.ChangePasswordAsync(usr, request.OldPassword, request.NewPassword));
         }
         catch (IdentityErrorException e)
         {
@@ -221,8 +221,8 @@ public class Result<T> : Result
 public interface IUserService
 {
     public Task<Result<UserDetails>> CreateUser(CreateUserRequest request, string role);
-    public Task<Result<UserDetails>> ChangeUsername(string userId, string newUsername);
-    public Task<Result> ChangePassword(string userId, string oldPassword, string newPassword);
+    public Task<Result<UserDetails>> ChangeUsername(ChangeUsernameRequest request);
+    public Task<Result> ChangePassword(ChangePasswordRequest request);
     public Task<Result<IEnumerable<UserDetails>>> GetUsers();
     public Task<Result> DeleteUser(string userId);
 }

@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Monte.AuthServer.Features.Users.Models;
@@ -88,29 +87,27 @@ public class UsersController : ControllerBase
     }
 
 
-    [HttpPatch("password")]
+    [HttpPost("password")]
     [Authorize(Roles = AuthConsts.RoleGroups.MonteAdminOrUser)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> ChangePassword(string? userId, string oldPassword, string newPassword)
+    public async Task<IActionResult> ChangePassword(ChangePasswordRequest request)
     {
         var isAdmin = HttpContext.User.IsInRole(AuthConsts.Roles.MonteAdmin);
 
         var RequesterId = HttpContext.User.GetClaim("sub");
 
-        Result? result;
-        if(isAdmin && !userId.IsNullOrEmpty())
+        if(RequesterId.IsNullOrEmpty() && (request.UserId.IsNullOrEmpty() || !isAdmin))
         {
-            result = await _userService.ChangePassword(userId!, oldPassword, newPassword);
+            return BadRequest("The request does not contain information about the user");
         }
-        else
+        if(!isAdmin || (isAdmin && request.UserId.IsNullOrEmpty()))
         {
-            if (RequesterId != null)
-                result = await _userService.ChangePassword(RequesterId, oldPassword, newPassword);
-            else
-                return BadRequest("The request does not contain information about the user");
+            request.UserId = RequesterId;
         }
+
+        var result = await _userService.ChangePassword(request);
 
         if (result.ErrType == Result.ErrorType.None)
         {
@@ -126,28 +123,26 @@ public class UsersController : ControllerBase
         }
     }
 
-    [HttpPatch("username")]
+    [HttpPost("username")]
     [Authorize(Roles = AuthConsts.RoleGroups.MonteAdminOrUser)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> ChangeUsername(string? userId, string newUsername)
+    public async Task<IActionResult> ChangeUsername(ChangeUsernameRequest request)
     {
         var isAdmin = HttpContext.User.IsInRole(AuthConsts.Roles.MonteAdmin);
         var RequesterId = HttpContext.User.GetClaim("sub");
 
-        Result<UserDetails>? result;
-        if (isAdmin && !userId.IsNullOrEmpty())
+        if (RequesterId.IsNullOrEmpty() && (request.UserId.IsNullOrEmpty() || !isAdmin))
         {
-            result = await _userService.ChangeUsername(userId!, newUsername);
+            return BadRequest("The request does not contain information about the user");
         }
-        else
+        if (!isAdmin || (isAdmin && request.UserId.IsNullOrEmpty()))
         {
-            if (RequesterId != null)
-                result = await _userService.ChangeUsername(RequesterId, newUsername);
-            else
-                return BadRequest("The request does not contain information about the user");
+            request.UserId = RequesterId;
         }
+
+        var result = await _userService.ChangeUsername(request);
 
         if (result.ErrType == Result.ErrorType.None)
         {

@@ -14,24 +14,27 @@ public class UserService : IUserService
         _userManager = userManager;
     }
 
-    public async Task<Result> CreateUser(CreateUserRequest request, string role)
+    public async Task<Result<UserDetails>> CreateUser(CreateUserRequest request, string role)
     {
         if(role == AuthConsts.Roles.MonteAdmin)
         {
+            var us = await _userManager.GetUsersInRoleAsync(AuthConsts.Roles.MonteAdmin);
             if ((await _userManager.GetUsersInRoleAsync(AuthConsts.Roles.MonteAdmin)).Any())
-                return new Result("Couldn't create admin, becouse an admin already exists in the system.", Result.ErrorType.BadRequest);
+            {
+                return new Result<UserDetails>("Couldn't create admin, because an admin already exists in the system.", Result.ErrorType.BadRequest);
+            }
         }
 
         if (string.IsNullOrEmpty(request.Username)
             || string.IsNullOrEmpty(request.Password))
         {
-            return new Result("Invalid credentials.", Result.ErrorType.BadRequest);
+            return new Result<UserDetails>("Invalid credentials.", Result.ErrorType.BadRequest);
         }
 
         var existingUser = await _userManager.FindByNameAsync(request.Username);
         if (existingUser is not null)
         {
-            return new Result("User already exists.", Result.ErrorType.BadRequest);
+            return new Result<UserDetails>("User already exists.", Result.ErrorType.BadRequest);
         }
 
         var user = new IdentityUser
@@ -42,7 +45,7 @@ public class UserService : IUserService
         var result = await _userManager.CreateAsync(user);
         if (!result.Succeeded)
         {
-            return new Result(result.Errors.ToErrorDict().ToString(), Result.ErrorType.BadRequest);
+            return new Result<UserDetails>(result.Errors.ToErrorDict().ToString(), Result.ErrorType.BadRequest);
         }
 
         try
@@ -53,7 +56,7 @@ public class UserService : IUserService
         catch (IdentityErrorException e)
         {
             await _userManager.DeleteAsync(user);
-            return new Result(e.Errors.ToString(), Result.ErrorType.BadRequest);
+            return new Result<UserDetails>(e.Errors.ToString(), Result.ErrorType.BadRequest);
         }
         catch
         {
@@ -66,23 +69,23 @@ public class UserService : IUserService
         return new Result<UserDetails>(response);
     }
     
-    public async Task<Result> ChangeUsername(string userId, string newUsername)
+    public async Task<Result<UserDetails>> ChangeUsername(string userId, string newUsername)
     {
         if (string.IsNullOrEmpty(newUsername) || string.IsNullOrEmpty(userId))
         {
-            return new Result("Invalid credentials.", Result.ErrorType.BadRequest);
+            return new Result<UserDetails>("Invalid credentials.", Result.ErrorType.BadRequest);
         }
 
         var existingUser = await _userManager.FindByNameAsync(newUsername);
         if (existingUser is not null)
         {
-            return new Result("This username is already taken.", Result.ErrorType.BadRequest);
+            return new Result<UserDetails>("This username is already taken.", Result.ErrorType.BadRequest);
         }
 
         var usr = await _userManager.FindByIdAsync(userId);
         if (usr == null)
         {
-            return new Result($"User with the id '{userId}' was not found.", Result.ErrorType.NotFound);
+            return new Result<UserDetails>($"User with the id '{userId}' was not found.", Result.ErrorType.NotFound);
         }
 
 
@@ -92,7 +95,7 @@ public class UserService : IUserService
         }
         catch (IdentityErrorException e)
         {
-            return new Result(e.Errors.ToString(), Result.ErrorType.BadRequest);
+            return new Result<UserDetails>(e.Errors.ToString(), Result.ErrorType.BadRequest);
         }
         catch
         {
@@ -135,7 +138,7 @@ public class UserService : IUserService
         return new Result();
     }
 
-    public async Task<Result> GetUsers()
+    public async Task<Result<IEnumerable<UserDetails>>> GetUsers()
     {
         var users = await Task.Run(() => _userManager.Users);
         var result = users.Select(x =>
@@ -186,9 +189,9 @@ public class Result
     public string? ErrorMessage { get; set; }
     public ErrorType ErrType { get; set; }
 
-    public Result(string? Error, ErrorType type)
+    public Result(string? error, ErrorType type)
     {
-        ErrorMessage = Error;
+        ErrorMessage = error;
         ErrType = type;
     }
 
@@ -208,17 +211,18 @@ public class Result<T> : Result
 {
     public T? Object { get; set; }
 
-    public Result(T? Obejct, string? Error = null) : base(Error, ErrorType.None)
+    public Result(T? obj) : base()
     {
-        Object = Obejct;
+        Object = obj;
     }
+    public Result(string? error, ErrorType type) : base(error, type) { }
 }
 
 public interface IUserService
 {
-    public Task<Result> CreateUser(CreateUserRequest request, string role);
-    public Task<Result> ChangeUsername(string userId, string newUsername);
+    public Task<Result<UserDetails>> CreateUser(CreateUserRequest request, string role);
+    public Task<Result<UserDetails>> ChangeUsername(string userId, string newUsername);
     public Task<Result> ChangePassword(string userId, string oldPassword, string newPassword);
-    public Task<Result> GetUsers();
+    public Task<Result<IEnumerable<UserDetails>>> GetUsers();
     public Task<Result> DeleteUser(string userId);
 }

@@ -29,8 +29,7 @@ public class UsersController : ControllerBase
         var result = await _userService.CreateUser(request, AuthConsts.Roles.MonteAdmin);
         if (result.ErrType == Result.ErrorType.None)
         {
-            var value = ((Result<UserDetails>)result).Object;
-            return Created(Request.Path, value);
+            return Created(Request.Path, result.Object);
         }
         else
         {
@@ -47,8 +46,7 @@ public class UsersController : ControllerBase
         var result = await _userService.CreateUser(request, AuthConsts.Roles.MonteUser);
         if (result.ErrType == Result.ErrorType.None)
         {
-            var value = ((Result<UserDetails>)result).Object;
-            return Created(Request.Path, value);
+            return Created(Request.Path, result.Object);
         }
         else
         {
@@ -64,8 +62,7 @@ public class UsersController : ControllerBase
         var result = await _userService.GetUsers();
         if (result.ErrType == Result.ErrorType.None)
         {
-            var value = ((Result<IEnumerable<UserDetails>>)result).Object;
-            return Ok(value);
+            return Ok(result.Object);
         }
         else
         {
@@ -134,12 +131,12 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> ChangeUsername([FromQuery] string? userId, string newUsername)
+    public async Task<IActionResult> ChangeUsername(string? userId, string newUsername)
     {
         var isAdmin = HttpContext.User.IsInRole(AuthConsts.Roles.MonteAdmin);
         var RequesterId = HttpContext.User.GetClaim("sub");
 
-        Result? result;
+        Result<UserDetails>? result;
         if (isAdmin && !userId.IsNullOrEmpty())
         {
             result = await _userService.ChangeUsername(userId!, newUsername);
@@ -154,8 +151,7 @@ public class UsersController : ControllerBase
 
         if (result.ErrType == Result.ErrorType.None)
         {
-            var value = ((Result<UserDetails>)result).Object;
-            return Ok(value);
+            return Ok(result.Object);
         }
         else if (result.ErrType == Result.ErrorType.NotFound)
         {

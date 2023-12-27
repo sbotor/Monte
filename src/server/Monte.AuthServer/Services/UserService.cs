@@ -18,7 +18,6 @@ public class UserService : IUserService
     {
         if(role == AuthConsts.Roles.MonteAdmin)
         {
-            var us = await _userManager.GetUsersInRoleAsync(AuthConsts.Roles.MonteAdmin);
             if ((await _userManager.GetUsersInRoleAsync(AuthConsts.Roles.MonteAdmin)).Any())
             {
                 return new Result<UserDetails>("Couldn't create admin, because an admin already exists in the system.", Result.ErrorType.BadRequest);
@@ -138,16 +137,16 @@ public class UserService : IUserService
         return new Result();
     }
 
-    public async Task<Result<IEnumerable<UserDetails>>> GetUsers()
+    public Task<Result<IEnumerable<UserDetails>>> GetUsers()
     {
-        var users = await Task.Run(() => _userManager.Users);
+        var users = _userManager.Users;
         var result = users.Select(x =>
             new UserDetails()
             {
                 Id = x.Id,
                 Name = x.UserName ?? "-"
             });
-        return new Result<IEnumerable<UserDetails>>(result);
+        return Task.FromResult(new Result<IEnumerable<UserDetails>>(result));
     }
 
     public async Task<Result> DeleteUser(string userId)

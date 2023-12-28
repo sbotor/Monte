@@ -1,4 +1,4 @@
-namespace Monte.AuthServer.Helpers;
+﻿namespace Monte.AuthServer.Helpers;
 
 internal static class AuthConsts
 {
@@ -12,5 +12,13 @@ internal static class AuthConsts
     {
         public const string MonteAgent = "monte_agent";
         public const string MonteAdmin = "monte_admin";
+        public const string MonteUser = "monte_user";
+
+    }
+
+    public static class RoleGroups
+    {
+        public const string MonteAdminOrUser = Roles.MonteAdmin + "," + Roles.MonteUser;
+
     }
 }

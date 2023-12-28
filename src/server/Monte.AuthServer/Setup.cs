@@ -1,9 +1,10 @@
-using System.Text;
+﻿using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Monte.AuthServer.Configuration;
 using Monte.AuthServer.Helpers;
+using Monte.AuthServer.Services;
 using OpenIddict.Server.AspNetCore;
 using OpenIddict.Validation.AspNetCore;
 using static OpenIddict.Abstractions.OpenIddictConstants;
@@ -36,6 +37,8 @@ internal static class Setup
         services.Configure<OidcAppSettings>(config.GetSection(nameof(OidcAppSettings)));
         
         services.AddHostedService<AuthSetupWorker>();
+
+        services.AddScoped<IUserService, UserService>();
     }
 
     private static void AddIdentity(this IServiceCollection services)

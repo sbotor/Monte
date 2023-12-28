@@ -1,9 +1,10 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Monte.AuthServer.Features.Users.Extensions;
+using Microsoft.IdentityModel.Tokens;
 using Monte.AuthServer.Features.Users.Models;
 using Monte.AuthServer.Helpers;
+using Monte.AuthServer.Services;
+using OpenIddict.Abstractions;
 
 namespace Monte.AuthServer.Features.Users;
 
@@ -11,76 +12,149 @@ namespace Monte.AuthServer.Features.Users;
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
-    private readonly UserManager<IdentityUser> _userManager;
+    private readonly IUserService _userService;
 
-    public UsersController(UserManager<IdentityUser> userManager)
+    public UsersController(IUserService userService)
     {
-        _userManager = userManager;
+        _userService = userService;
+    }
+
+    [HttpPost("root")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> CreateRootAdmin(CreateUserRequest request)
+    {
+        var result = await _userService.CreateUser(request, AuthConsts.Roles.MonteAdmin);
+        if (result.ErrType == Result.ErrorType.None)
+        {
+            return Created(Request.Path, result.Object);
+        }
+        else
+        {
+            return BadRequest(result.ErrorMessage);
+        }
     }
 
     [HttpPost]
-    [AllowAnonymous]
+    [Authorize(Roles = AuthConsts.Roles.MonteAdmin)]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateUser(CreateUserRequest request)
     {
-        if (string.IsNullOrEmpty(request.Username)
-            || string.IsNullOrEmpty(request.Password))
+        var result = await _userService.CreateUser(request, AuthConsts.Roles.MonteUser);
+        if (result.ErrType == Result.ErrorType.None)
         {
-            return BadRequest("Invalid credentials.");
+            return Created(Request.Path, result.Object);
         }
-
-        var existingUser = await _userManager.FindByNameAsync(request.Username);
-        if (existingUser is not null)
+        else
         {
-            return BadRequest("User already exists.");
+            return BadRequest(result.ErrorMessage);
         }
-
-        var user = new IdentityUser
-        {
-            UserName = request.Username
-        };
-
-        var result = await _userManager.CreateAsync(user);
-        if (!result.Succeeded)
-        {
-            return BadRequest(result.Errors.ToErrorDict());
-        }
-        
-        try
-        {
-            ThrowIfError(await _userManager.AddPasswordAsync(user, request.Password));
-            ThrowIfError(await _userManager.AddToRoleAsync(user, AuthConsts.Roles.MonteAdmin));
-        }
-        catch (IdentityErrorException e)
-        {
-            await _userManager.DeleteAsync(user);
-            return BadRequest(e.Errors);
-        }
-        catch
-        {
-            await _userManager.DeleteAsync(user);
-            throw;
-        }
-
-        return Ok();
     }
 
-    private static void ThrowIfError(IdentityResult result)
+    [HttpGet]
+    [Authorize(Roles = AuthConsts.Roles.MonteAdmin)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetUsers()
     {
-        if (result.Succeeded)
+        var result = await _userService.GetUsers();
+        if (result.ErrType == Result.ErrorType.None)
         {
-            return;
+            return Ok(result.Object);
         }
-
-        throw new IdentityErrorException(result.Errors.ToErrorDict());
+        else
+        {
+            return BadRequest(result.ErrorMessage);
+        }
     }
 
-    private sealed class IdentityErrorException : Exception
+    [HttpDelete("{userId}")]
+    [Authorize(Roles = AuthConsts.Roles.MonteAdmin)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteUser(string userId)
     {
-        public IReadOnlyDictionary<string, string[]> Errors { get; }
-
-        public IdentityErrorException(IReadOnlyDictionary<string, string[]> errors)
+        var result = await _userService.DeleteUser(userId);
+        if (result.ErrType == Result.ErrorType.None)
         {
-            Errors = errors;
+            return NoContent();
+        }
+        else
+        {
+            return BadRequest(result.ErrorMessage);
+        }
+    }
+
+
+    [HttpPost("password")]
+    [Authorize(Roles = AuthConsts.RoleGroups.MonteAdminOrUser)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ChangePassword(ChangePasswordRequest request)
+    {
+        var isAdmin = HttpContext.User.IsInRole(AuthConsts.Roles.MonteAdmin);
+
+        var RequesterId = HttpContext.User.GetClaim("sub");
+
+        if(RequesterId.IsNullOrEmpty() && (request.UserId.IsNullOrEmpty() || !isAdmin))
+        {
+            return BadRequest("The request does not contain information about the user");
+        }
+        if(!isAdmin || (isAdmin && request.UserId.IsNullOrEmpty()))
+        {
+            request.UserId = RequesterId;
+        }
+
+        var result = await _userService.ChangePassword(request);
+
+        if (result.ErrType == Result.ErrorType.None)
+        {
+            return NoContent();
+        }
+        else if (result.ErrType == Result.ErrorType.NotFound)
+        {
+            return NotFound(result.ErrorMessage);
+        }
+        else
+        {
+            return BadRequest(result.ErrorMessage);
+        }
+    }
+
+    [HttpPost("username")]
+    [Authorize(Roles = AuthConsts.RoleGroups.MonteAdminOrUser)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ChangeUsername(ChangeUsernameRequest request)
+    {
+        var isAdmin = HttpContext.User.IsInRole(AuthConsts.Roles.MonteAdmin);
+        var RequesterId = HttpContext.User.GetClaim("sub");
+
+        if (RequesterId.IsNullOrEmpty() && (request.UserId.IsNullOrEmpty() || !isAdmin))
+        {
+            return BadRequest("The request does not contain information about the user");
+        }
+        if (!isAdmin || (isAdmin && request.UserId.IsNullOrEmpty()))
+        {
+            request.UserId = RequesterId;
+        }
+
+        var result = await _userService.ChangeUsername(request);
+
+        if (result.ErrType == Result.ErrorType.None)
+        {
+            return Ok(result.Object);
+        }
+        else if (result.ErrType == Result.ErrorType.NotFound)
+        {
+            return NotFound(result.ErrorMessage);
+        }
+        else
+        {
+            return BadRequest(result.ErrorMessage);
         }
     }
 }

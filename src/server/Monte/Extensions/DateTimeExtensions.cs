@@ -1,6 +1,6 @@
 ﻿namespace Monte.Extensions;
 
-public enum DateTimeDiffKind : byte
+public enum DateTimeGranularity : byte
 {
     QuarterHours,
     Days,
@@ -27,12 +27,12 @@ public static class DateTimeExtensions
 
     public static IEnumerable<DateTime> EnumerateUntil(this DateTime from,
         DateTime to,
-        DateTimeDiffKind diffKind)
-        => diffKind switch
+        DateTimeGranularity granularity)
+        => granularity switch
         {
-            DateTimeDiffKind.QuarterHours => from.EnumerateMinutesUntil(to, 15),
-            DateTimeDiffKind.Days => from.EnumerateDaysUntil(to),
-            DateTimeDiffKind.Months => from.BeginningOfTheMonth().EnumerateMonthsUntil(to),
+            DateTimeGranularity.QuarterHours => from.EnumerateMinutesUntil(to, 15),
+            DateTimeGranularity.Days => from.EnumerateDaysUntil(to),
+            DateTimeGranularity.Months => from.BeginningOfTheMonth().EnumerateMonthsUntil(to),
             _ => throw new InvalidOperationException()
         };
 
@@ -66,15 +66,15 @@ public static class DateTimeExtensions
     public static DateTime BeginningOfTheMonth(this DateTime dt)
         => new(dt.Year, dt.Month, 1, 0, 0, 0, dt.Kind);
 
-    public static DateTimeDiffKind GetDiffKind(this DateTime left, DateTime right)
+    public static DateTimeGranularity GetDiffKind(this DateTime left, DateTime right)
     {
         var diff = left - right;
 
         return Math.Abs(diff.Days) switch
         {
-            <= 1 => DateTimeDiffKind.QuarterHours,
-            <= 30 => DateTimeDiffKind.Days,
-            _ => DateTimeDiffKind.Months
+            <= 1 => DateTimeGranularity.QuarterHours,
+            <= 30 => DateTimeGranularity.Days,
+            _ => DateTimeGranularity.Months
         };
     }
 }

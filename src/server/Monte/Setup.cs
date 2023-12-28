@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Monte.Behaviors;
+using Monte.Features.Charts.Helpers;
 
 [assembly: InternalsVisibleTo("Monte.Tests")]
 
@@ -29,6 +30,9 @@ public static class Setup
             x => x.UseNpgsql(config.GetConnectionString("Default")));
 
         services.AddSingleton<IClock, Clock>();
+        services.AddSingleton<IChartResultBuilder, ChartResultBuilder>();
+
+        services.AddScoped(typeof(IChartHelper<>), typeof(ChartHelper<>));
         
         return services;
     }

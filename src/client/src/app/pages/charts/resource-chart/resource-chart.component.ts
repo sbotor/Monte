@@ -28,6 +28,7 @@ import { AggregationTypeSelectComponent } from '@features/charts/aggregation-typ
 import { ChartParamValues } from '@features/charts/chartParamMap';
 import { ChartAggregationType } from '@features/charts/charts.service';
 import { ChartType } from '@features/charts/models';
+import { ChartTypeSelectComponent } from '@features/charts/chart-type-select/chart-type-select.component';
 
 @Component({
   selector: 'app-resource-chart',
@@ -43,6 +44,7 @@ import { ChartType } from '@features/charts/models';
     CpuCoreSelectComponent,
     MemoryTypeToggleComponent,
     AggregationTypeSelectComponent,
+    ChartTypeSelectComponent,
   ],
   templateUrl: './resource-chart.component.html',
   styleUrl: './resource-chart.component.scss',
@@ -109,13 +111,15 @@ export class ResourceChartComponent implements OnInit, OnDestroy {
   }
 
   public getChartSubtitle(params: ChartParamValues) {
-    const core = params.cpuCore;
-
-    if (params.chartType !== 'cpu' || core === null || core === undefined) {
-      return undefined;
+    switch (params.chartType) {
+      case 'cpu':
+        const core = params.cpuCore;
+        return core === null || core === undefined
+          ? null
+          : 'Core ' + core.toString();
+      case 'memory':
+        return params.swapMemory ? 'Swap' : null;
     }
-
-    return 'Core ' + core.toString();
   }
 
   private getChartTitlePrefix(aggregationType: ChartAggregationType) {

@@ -4,6 +4,7 @@
       <h1>{{ data.machine.displayName }}</h1>
       <mat-divider class="divider"></mat-divider>
       <app-chart-date-picker></app-chart-date-picker>
+      <app-chart-type-select></app-chart-type-select>
       <app-aggregation-type-select></app-aggregation-type-select>
       <app-cpu-core-select *ngIf="data.params.chartType === 'cpu'"
         [cpuCoreCount]="data.machine.cpuLogicalCount"></app-cpu-core-select>

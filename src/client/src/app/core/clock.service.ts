@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { DateRange } from '@features/charts/charts.service';
+import { UtcDate } from './utcDate';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ClockService {
   public today() {
@@ -13,7 +14,7 @@ export class ClockService {
     const today = this.today();
     return {
       dateFrom: today,
-      dateTo: today
+      dateTo: today,
     } as DateRange;
   }
 
@@ -23,7 +24,10 @@ export class ClockService {
     return newDate;
   }
 
-  public toUtcString(date: Date) {
-    return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString();
+  public serializeDateRange(range: DateRange) {
+    return {
+      dateFrom: new UtcDate(range.dateFrom).toString(),
+      dateTo: new UtcDate(range.dateTo).toString(),
+    };
   }
 }

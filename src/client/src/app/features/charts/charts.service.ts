@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { ApiService } from '@core/api.service';
 import { ClockService } from '@core/clock.service';
 
+export type ChartAggregationType = 'Avg' | 'Min' | 'Max';
+
 export interface ChartData<T> {
   labels: Date[];
   values: T[];
@@ -12,19 +14,31 @@ export interface DateRange {
   dateTo: Date;
 }
 
+export interface ChartParams {
+  dateFrom: string;
+  dateTo: string;
+  aggregationType: ChartAggregationType;
+}
+
+export interface CpuUsageChartParams extends ChartParams {
+  core?: number | null;
+}
+
+export interface MemoryUsageChartParams extends ChartParams {
+  swap: boolean;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class ChartsService {
   constructor(private readonly api: ApiService, private readonly clock: ClockService) {}
 
-  public getAvgCpuUsage(machineId: string, range: DateRange, core: number | null = null) {
-    const params = {
-      dateFrom: this.clock.toUtcString(range.dateFrom),
-      dateTo: this.clock.toUtcString(range.dateTo),
-      core,
-    }
+  public getCpuUsage(machineId: string, params: CpuUsageChartParams) {
+    return this.api.get<ChartData<number>>(`charts/${machineId}/cpu`, params);
+  }
 
-    return this.api.get<ChartData<number>>(`charts/${machineId}/cpu/avg`, params);
+  public getMemoryUsage(machineId: string, params: MemoryUsageChartParams) {
+    return this.api.get<ChartData<number>>(`charts/${machineId}/memory`, params);
   }
 }

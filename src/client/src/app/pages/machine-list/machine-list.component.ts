@@ -60,7 +60,7 @@ export class MachineListComponent implements OnInit, OnDestroy {
   }
 
   public onClickedRow(id: string) {
-    this.router.navigate(['machines', id, 'cpu']);
+    this.router.navigate(['machines', id, 'chart']);
   }
 
   private fetchData() {

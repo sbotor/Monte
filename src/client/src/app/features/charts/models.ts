@@ -8,9 +8,9 @@ export interface ChartOptions {
   theme: ApexTheme;
 }
 
-export type ChartType = 'averageCpuUsage';
+export type ChartType = 'cpu' | 'memory';
 
-export type ChartParamKeys = 'cpuCore';
-export type ChartParamMap = {
-  [K in ChartParamKeys]?: any
-};
+export interface SelectOption<T> {
+  value: T;
+  label: string;
+}

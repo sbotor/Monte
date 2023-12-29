@@ -7,7 +7,7 @@ import { ResourceChartComponent } from './pages/charts/resource-chart/resource-c
 export const routes: Routes = [
   { path: '', redirectTo: 'machines', pathMatch: 'full' },
   { path: 'machines', component: MachineListComponent, canActivate: [loggedInGuard] },
-  { path: 'machines/:id/cpu', component: ResourceChartComponent, canActivate: [loggedInGuard] },
+  { path: 'machines/:id/chart', component: ResourceChartComponent, canActivate: [loggedInGuard] },
   { path: 'notFound', component: NotFoundComponent },
   { path: '**', redirectTo: 'notFound' }
 ];

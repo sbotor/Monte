@@ -26,14 +26,9 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> CreateRootAdmin(CreateUserRequest request)
     {
         var result = await _userService.CreateUser(request, AuthConsts.Roles.MonteAdmin);
-        if (result.ErrType == Result.ErrorType.None)
-        {
-            return Created(Request.Path, result.Object);
-        }
-        else
-        {
-            return BadRequest(result.ErrorMessage);
-        }
+        return result.ErrType == Result.ErrorType.None
+            ? Created(Request.Path, result.Object)
+            : BadRequest(result.ErrorMessage);
     }
 
     [HttpPost]
@@ -43,14 +38,9 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> CreateUser(CreateUserRequest request)
     {
         var result = await _userService.CreateUser(request, AuthConsts.Roles.MonteUser);
-        if (result.ErrType == Result.ErrorType.None)
-        {
-            return Created(Request.Path, result.Object);
-        }
-        else
-        {
-            return BadRequest(result.ErrorMessage);
-        }
+        return result.ErrType == Result.ErrorType.None
+            ? Created(Request.Path, result.Object)
+            : BadRequest(result.ErrorMessage);
     }
 
     [HttpGet]
@@ -76,19 +66,12 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> DeleteUser(string userId)
     {
         var result = await _userService.DeleteUser(userId);
-        if (result.ErrType == Result.ErrorType.None)
-        {
-            return NoContent();
-        }
-        else
-        {
-            return BadRequest(result.ErrorMessage);
-        }
+        return result.ErrType == Result.ErrorType.None ? NoContent() : BadRequest(result.ErrorMessage);
     }
 
 
     [HttpPost("password")]
-    [Authorize(Roles = AuthConsts.RoleGroups.MonteAdminOrUser)]
+    [Authorize(Roles = AuthConsts.RoleGroups.AllUsers)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -96,65 +79,55 @@ public class UsersController : ControllerBase
     {
         var isAdmin = HttpContext.User.IsInRole(AuthConsts.Roles.MonteAdmin);
 
-        var RequesterId = HttpContext.User.GetClaim("sub");
+        var requesterId = HttpContext.User.GetClaim("sub");
 
-        if(RequesterId.IsNullOrEmpty() && (request.UserId.IsNullOrEmpty() || !isAdmin))
+        if (requesterId.IsNullOrEmpty() && (request.UserId.IsNullOrEmpty() || !isAdmin))
         {
             return BadRequest("The request does not contain information about the user");
         }
-        if(!isAdmin || (isAdmin && request.UserId.IsNullOrEmpty()))
+
+        if (!isAdmin || (isAdmin && request.UserId.IsNullOrEmpty()))
         {
-            request.UserId = RequesterId;
+            request.UserId = requesterId;
         }
 
         var result = await _userService.ChangePassword(request);
 
-        if (result.ErrType == Result.ErrorType.None)
+        return result.ErrType switch
         {
-            return NoContent();
-        }
-        else if (result.ErrType == Result.ErrorType.NotFound)
-        {
-            return NotFound(result.ErrorMessage);
-        }
-        else
-        {
-            return BadRequest(result.ErrorMessage);
-        }
+            Result.ErrorType.None => NoContent(),
+            Result.ErrorType.NotFound => NotFound(result.ErrorMessage),
+            _ => BadRequest(result.ErrorMessage)
+        };
     }
 
     [HttpPost("username")]
-    [Authorize(Roles = AuthConsts.RoleGroups.MonteAdminOrUser)]
+    [Authorize(Roles = AuthConsts.RoleGroups.AllUsers)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ChangeUsername(ChangeUsernameRequest request)
     {
         var isAdmin = HttpContext.User.IsInRole(AuthConsts.Roles.MonteAdmin);
-        var RequesterId = HttpContext.User.GetClaim("sub");
+        var requesterId = HttpContext.User.GetClaim("sub");
 
-        if (RequesterId.IsNullOrEmpty() && (request.UserId.IsNullOrEmpty() || !isAdmin))
+        if (requesterId.IsNullOrEmpty() && (request.UserId.IsNullOrEmpty() || !isAdmin))
         {
             return BadRequest("The request does not contain information about the user");
         }
+
         if (!isAdmin || (isAdmin && request.UserId.IsNullOrEmpty()))
         {
-            request.UserId = RequesterId;
+            request.UserId = requesterId;
         }
 
         var result = await _userService.ChangeUsername(request);
 
-        if (result.ErrType == Result.ErrorType.None)
+        return result.ErrType switch
         {
-            return Ok(result.Object);
-        }
-        else if (result.ErrType == Result.ErrorType.NotFound)
-        {
-            return NotFound(result.ErrorMessage);
-        }
-        else
-        {
-            return BadRequest(result.ErrorMessage);
-        }
+            Result.ErrorType.None => Ok(result.Object),
+            Result.ErrorType.NotFound => NotFound(result.ErrorMessage),
+            _ => BadRequest(result.ErrorMessage)
+        };
     }
 }

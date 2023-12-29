@@ -12,6 +12,12 @@ public static class AuthConsts
     {
         public const string MonteAgent = "monte_agent";
         public const string MonteAdmin = "monte_admin";
+        public const string MonteUser = "monte_user";
+    }
+
+    public static class Groups
+    {
+        public const string AllUsers = $"{Roles.MonteAdmin},{Roles.MonteUser}";
     }
 }
 

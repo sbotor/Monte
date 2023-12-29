@@ -8,7 +8,7 @@ namespace Monte.WebApi.Features.Charts;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = AuthConsts.Roles.MonteAdmin)]
+[Authorize(Roles = AuthConsts.Groups.AllUsers)]
 public class ChartsController : ControllerBase
 {
     private readonly ISender _sender;
@@ -18,10 +18,17 @@ public class ChartsController : ControllerBase
         _sender = sender;
     }
 
-    [HttpGet("{machineId:guid}/cpu/avg")]
-    public async Task<IActionResult> GetAvgCpuUsage(
+    [HttpGet("{machineId:guid}/cpu")]
+    public async Task<IActionResult> GetCpuUsage(
         Guid machineId,
-        [FromQuery] GetAvgCpuUsageChartDataRequest request,
+        [FromQuery] GetCpuUsageChartDataRequest request,
+        CancellationToken cancellationToken)
+        => Ok(await _sender.Send(request.ToQuery(machineId), cancellationToken));
+    
+    [HttpGet("{machineId:guid}/memory")]
+    public async Task<IActionResult> GetMemoryUsage(
+        Guid machineId,
+        [FromQuery] GetMemoryUsageChartDataRequest request,
         CancellationToken cancellationToken)
         => Ok(await _sender.Send(request.ToQuery(machineId), cancellationToken));
 }

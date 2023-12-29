@@ -8,7 +8,7 @@ namespace Monte.WebApi.Features.Charts;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = AuthConsts.Roles.MonteAdmin)]
+[Authorize(Roles = AuthConsts.Groups.AllUsers)]
 public class ChartsController : ControllerBase
 {
     private readonly ISender _sender;

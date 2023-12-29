@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, effect } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { ChartsParamsService } from '@features/charts/charts-params.service';
@@ -14,7 +14,6 @@ import {
   map,
   switchMap,
   takeUntil,
-  tap,
 } from 'rxjs';
 import { MatDividerModule } from '@angular/material/divider';
 import { CpuCoreSelectComponent } from '@features/charts/cpu-core-select/cpu-core-select.component';
@@ -29,6 +28,11 @@ import { ChartParamValues } from '@features/charts/chartParamMap';
 import { ChartAggregationType } from '@features/charts/charts.service';
 import { ChartType } from '@features/charts/models';
 import { ChartTypeSelectComponent } from '@features/charts/chart-type-select/chart-type-select.component';
+
+interface ResourceChartData {
+  params: ChartParamValues;
+  machine: MachineDetails;
+}
 
 @Component({
   selector: 'app-resource-chart',
@@ -55,12 +59,12 @@ export class ResourceChartComponent implements OnInit, OnDestroy {
   public readonly chartOptions = this.params.chartOptions;
   public readonly isLoading = this.params.isLoading;
 
-  private readonly _machine = new ReplaySubject<MachineDetails>();
+  private readonly _machine = new ReplaySubject<MachineDetails>(1);
   public readonly data$ = combineLatest([
     this.params.paramMap$,
     this._machine,
   ]).pipe(
-    map((x) => {
+    map((x): ResourceChartData => {
       return { params: x[0], machine: x[1] };
     })
   );

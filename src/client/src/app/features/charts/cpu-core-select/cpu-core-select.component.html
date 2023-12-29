@@ -1,7 +1,7 @@
-<mat-form-field *ngIf="chartType() === 'averageCpuUsage'">
+<mat-form-field *ngIf="cpuCore$ | async; let cpuCore">
   <mat-label>Core</mat-label>
-  <mat-select (selectionChange)="onChanges($event)" [value]="cpuCore()" placeholder="All cores">
-    <mat-option [value]="null">All cores</mat-option>
-    <mat-option [value]="0">0</mat-option>
+  <mat-select (selectionChange)="onChanges($event)" [value]="cpuCore" placeholder="All cores">
+    <mat-option [value]="unselected">All cores</mat-option>
+    <mat-option *ngFor="let core of listCores()" [value]="core">{{ core }}</mat-option>
   </mat-select>
 </mat-form-field>

@@ -1,0 +1,6 @@
+<mat-form-field *ngIf="aggregationType$ | async; let aggregationType">
+  <mat-label>Aggregation</mat-label>
+  <mat-select (selectionChange)="onChanges($event)" [value]="aggregationType">
+    <mat-option *ngFor="let opt of options" [value]="opt.value">{{ opt.label }}</mat-option>
+  </mat-select>
+</mat-form-field>

@@ -1,25 +1,30 @@
-import { ChartOptions, ChartType } from './models';
+import { ClockService } from '@core/clock.service';
+import { ChartOptions } from './models';
+import { ChartParamMap } from './chartParamMap';
 
-export type ChartDefaults = {
-  [K in ChartType]: () => ChartOptions;
+export const chartOptionsDefaults = (): ChartOptions => {
+  return {
+    series: [{ name: 'values', data: [] }],
+    chart: {
+      type: 'line',
+      width: '100%',
+      height: '100%',
+      zoom: { enabled: false },
+      toolbar: { show: false },
+    },
+    xAxis: { type: 'datetime' },
+    yAxis: { min: 0, max: 100 },
+    theme: { mode: 'dark' },
+  };
 };
 
-export const chartDefaults: ChartDefaults = {
-  averageCpuUsage: () => {
-    return {
-      series: [{ name: 'values', data: [] }],
-      chart: {
-        type: 'line',
-        width: '100%',
-        height: '100%',
-        zoom: { enabled: false },
-        toolbar: { show: false },
-      },
-      xAxis: { type: 'datetime' },
-      yAxis: { min: 0, max: 100 },
-      theme: { mode: 'dark' },
-    };
-  }
-} as const;
-
-export default chartDefaults;
+export const chartParamMapDefaults = (clock: ClockService): ChartParamMap => {
+  return new ChartParamMap({
+    machineId: '',
+    dateRange: clock.todayRange(),
+    chartType: 'cpu',
+    aggregationType: 'Avg',
+    cpuCore: null,
+    swapMemory: false,
+  });
+};

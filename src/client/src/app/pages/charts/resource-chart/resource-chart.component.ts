@@ -1,6 +1,5 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ChartsService } from '@features/charts/charts.service';
 import { ActivatedRoute } from '@angular/router';
 import { ChartsParamsService } from '@features/charts/charts-params.service';
 import { ChartDatePickerComponent } from '@features/charts/chart-date-picker/chart-date-picker.component';
@@ -8,9 +7,27 @@ import { NgApexchartsModule } from 'ng-apexcharts';
 import { SpinnerComponent } from '@components/spinner';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatCardModule } from '@angular/material/card';
-import { Subject, takeUntil } from 'rxjs';
+import {
+  ReplaySubject,
+  Subject,
+  combineLatest,
+  map,
+  switchMap,
+  takeUntil,
+  tap,
+} from 'rxjs';
 import { MatDividerModule } from '@angular/material/divider';
 import { CpuCoreSelectComponent } from '@features/charts/cpu-core-select/cpu-core-select.component';
+import {
+  MachineDetails,
+  MachinesService,
+} from '@features/machines/machines.service';
+import { MemoryTypeToggleComponent } from '@features/charts/memory-type-toggle/memory-type-toggle.component';
+import { ChartsDataService } from '@features/charts/charts-data.service';
+import { AggregationTypeSelectComponent } from '@features/charts/aggregation-type-select/aggregation-type-select.component';
+import { ChartParamValues } from '@features/charts/chartParamMap';
+import { ChartAggregationType } from '@features/charts/charts.service';
+import { ChartType } from '@features/charts/models';
 
 @Component({
   selector: 'app-resource-chart',
@@ -24,6 +41,8 @@ import { CpuCoreSelectComponent } from '@features/charts/cpu-core-select/cpu-cor
     MatCardModule,
     MatDividerModule,
     CpuCoreSelectComponent,
+    MemoryTypeToggleComponent,
+    AggregationTypeSelectComponent,
   ],
   templateUrl: './resource-chart.component.html',
   styleUrl: './resource-chart.component.scss',
@@ -33,25 +52,39 @@ export class ResourceChartComponent implements OnInit, OnDestroy {
 
   public readonly chartOptions = this.params.chartOptions;
   public readonly isLoading = this.params.isLoading;
-  public readonly chartType = this.params.chartType;
 
-  private _id = '';
+  private readonly _machine = new ReplaySubject<MachineDetails>();
+  public readonly data$ = combineLatest([
+    this.params.paramMap$,
+    this._machine,
+  ]).pipe(
+    map((x) => {
+      return { params: x[0], machine: x[1] };
+    })
+  );
 
   constructor(
-    private readonly api: ChartsService,
+    private readonly data: ChartsDataService,
     private readonly route: ActivatedRoute,
-    private readonly params: ChartsParamsService
+    private readonly params: ChartsParamsService,
+    private readonly machines: MachinesService
   ) {}
 
   ngOnInit(): void {
-    this.route.paramMap.pipe(takeUntil(this.destroyed$)).subscribe((x) => {
-      this._id = x.get('id')!;
-      this.fetchData();
-    });
+    this.route.paramMap
+      .pipe(
+        takeUntil(this.destroyed$),
+        map((x) => x.get('id')!),
+        switchMap((x) => this.machines.getMachineDetails(x))
+      )
+      .subscribe((x) => {
+        this.params.updateCustomParams((y) => (y.machineId = x.id));
+        this._machine.next(x);
+      });
 
-    this.params.changed$
+    this.data$
       .pipe(takeUntil(this.destroyed$))
-      .subscribe(() => this.fetchData());
+      .subscribe((x) => this.fetchData(x.params));
   }
 
   ngOnDestroy(): void {
@@ -59,20 +92,49 @@ export class ResourceChartComponent implements OnInit, OnDestroy {
     this.destroyed$.complete();
   }
 
-  private fetchData() {
+  private fetchData(params: ChartParamValues) {
     this.params.setLoading(true);
 
-    this.api
-      .getAvgCpuUsage(this._id, this.params.dateRange())
+    this.data
+      .fetchData(params)
       .pipe(takeUntil(this.destroyed$))
-      .subscribe((data) => {
-        this.params.updateData((x) => {
-          x[0].data = data.values.map((y, i) => {
-            return { x: data.labels[i].valueOf(), y: y };
-          });
-        });
+      .subscribe((_) => this.params.setLoading(false));
+  }
 
-        this.params.setLoading(false);
-      });
+  public getChartTitle(params: ChartParamValues) {
+    const prefix = this.getChartTitlePrefix(params.aggregationType);
+    const suffix = this.getChartTitleSuffix(params.chartType);
+
+    return `${prefix} ${suffix}`;
+  }
+
+  public getChartSubtitle(params: ChartParamValues) {
+    const core = params.cpuCore;
+
+    if (params.chartType !== 'cpu' || core === null || core === undefined) {
+      return undefined;
+    }
+
+    return 'Core ' + core.toString();
+  }
+
+  private getChartTitlePrefix(aggregationType: ChartAggregationType) {
+    switch (aggregationType) {
+      case 'Avg':
+        return 'Average';
+      case 'Min':
+        return 'Minimum';
+      case 'Max':
+        return 'Maximum';
+    }
+  }
+
+  private getChartTitleSuffix(chartType: ChartType) {
+    switch (chartType) {
+      case 'cpu':
+        return 'CPU usage';
+      case 'memory':
+        return 'memory usage';
+    }
   }
 }

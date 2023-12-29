@@ -1,63 +1,47 @@
-import { Injectable, Signal, WritableSignal, signal } from '@angular/core';
-import { DateRange } from './charts.service';
+import { Injectable, signal } from '@angular/core';
 import { ClockService } from '@core/clock.service';
-import { ChartOptions, ChartParamMap, ChartType } from './models';
-import chartDefaults from './chartDefaults';
-import { ApexAxisChartSeries } from 'ng-apexcharts';
-import { Subject } from 'rxjs';
+import { ChartOptions } from './models';
+import { chartOptionsDefaults, chartParamMapDefaults } from './chartDefaults';
+import { BehaviorSubject, map, tap } from 'rxjs';
+import { ChartParamMap, ParamsMutator } from './chartParamMap';
 
-export type SeriesUpdateFn = (s: ApexAxisChartSeries) => void;
+export interface ChartDataValues {
+  x: number;
+  y: number;
+}
 
 @Injectable({
   providedIn: 'root',
 })
 export class ChartsParamsService {
-  private readonly _dateRange: WritableSignal<DateRange>;
-  public readonly dateRange: Signal<DateRange>;
-
-  private readonly _chartOptions = signal<ChartOptions>(
-    chartDefaults.averageCpuUsage()
-  );
+  private readonly _chartOptions = signal<ChartOptions>(chartOptionsDefaults());
   public readonly chartOptions = this._chartOptions.asReadonly();
 
   private readonly _isLoading = signal(true);
   public readonly isLoading = this._isLoading.asReadonly();
 
-  private readonly _changed$ = new Subject<void>();
-  public readonly changed$ = this._changed$.asObservable();
+  private readonly _paramMap = new BehaviorSubject<ChartParamMap>(
+    chartParamMapDefaults(this.clock)
+  );
+  public readonly paramMap$ = this._paramMap
+    .asObservable()
+    .pipe(map((x) => x.get()));
 
-  private readonly _chartType = signal<ChartType>('averageCpuUsage');
-  public readonly chartType = this._chartType.asReadonly();
+  constructor(private readonly clock: ClockService) {}
 
-  private readonly _paramMap = signal<ChartParamMap>({});
-  public readonly paramMap = this._paramMap.asReadonly();
-
-  constructor(private readonly clock: ClockService) {
-    this._dateRange = signal<DateRange>(this.clock.todayRange());
-    this.dateRange = this._dateRange.asReadonly();
+  public updateCustomParams(mutator: ParamsMutator) {
+    const changed = this._paramMap.value.modify(mutator);
+    this._paramMap.next(changed);
   }
 
-  public setDateRange(range: DateRange) {
-    this._dateRange.set({ ...range });
-    this._changed$.next();
-  }
-
-  public updateData(updateFn: SeriesUpdateFn) {
+  public updateData(values: ChartDataValues[]) {
     this._chartOptions.update((x) => {
-      updateFn(x.series);
+      x.series[0].data = values;
       return x;
     });
   }
 
   public setLoading(value: boolean) {
     this._isLoading.set(value);
-  }
-
-  public setCpuCore(core?: number | null) {
-    this._paramMap.update(x => {
-      x.cpuCore = core;
-      return x;
-    });
-    this._changed$.next();
   }
 }

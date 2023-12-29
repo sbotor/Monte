@@ -1,14 +1,21 @@
-<mat-drawer-container class="container">
+<mat-drawer-container *ngIf="data$ | async; let data; else spinner" class="container">
   <mat-drawer class="drawer" mode="side" opened>
     <div class="drawer-content">
-      <h1>👷‍♀️ ⚠️Charts in progress⚠️ 👷</h1>
+      <h1>{{ data.machine.displayName }}</h1>
       <mat-divider class="divider"></mat-divider>
       <app-chart-date-picker></app-chart-date-picker>
-      <app-cpu-core-select></app-cpu-core-select>
+      <app-aggregation-type-select></app-aggregation-type-select>
+      <app-cpu-core-select *ngIf="data.params.chartType === 'cpu'"
+        [cpuCoreCount]="data.machine.cpuLogicalCount"></app-cpu-core-select>
+      <app-memory-type-toggle *ngIf="data.params.chartType === 'memory'"></app-memory-type-toggle>
     </div>
   </mat-drawer>
   <mat-drawer-content>
     <mat-card *ngIf="!isLoading(); else spinner" class="chart-card">
+      <mat-card-header>
+        <mat-card-title>{{ getChartTitle(data.params) }}</mat-card-title>
+        <mat-card-subtitle *ngIf="getChartSubtitle(data.params); let subtitle">{{ subtitle }}</mat-card-subtitle>
+      </mat-card-header>
       <apx-chart class="chart" [series]="chartOptions().series" [chart]="chartOptions().chart"
         [xaxis]="chartOptions().xAxis" [theme]="chartOptions().theme" [yaxis]="chartOptions().yAxis"></apx-chart>
     </mat-card>

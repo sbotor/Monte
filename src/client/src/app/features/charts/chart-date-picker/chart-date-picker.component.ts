@@ -1,12 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { DateRange } from '../charts.service';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { ClockService } from '@core/clock.service';
 import { MatNativeDateModule } from '@angular/material/core';
 import { ChartsParamsService } from '../charts-params.service';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-chart-date-picker',
@@ -21,26 +21,32 @@ import { ChartsParamsService } from '../charts-params.service';
   templateUrl: './chart-date-picker.component.html',
   styleUrl: './chart-date-picker.component.scss',
 })
-export class ChartDatePickerComponent implements OnInit {
+export class ChartDatePickerComponent implements OnInit, OnDestroy {
+  private readonly destroyed$ = new Subject<void>();
+
   public readonly range = new FormGroup({
     start: new FormControl<Date | null>(null),
     end: new FormControl<Date | null>(null),
   });
 
-  private _prevValues: DateRange = { ...this.params.dateRange() };
+  private _prevValues: DateRange = null!;
 
-  constructor(
-    private readonly clock: ClockService,
-    private readonly params: ChartsParamsService
-  ) {}
+  constructor(private readonly params: ChartsParamsService) {}
 
   ngOnInit(): void {
-    const today = this.clock.today();
-
-    this.range.setValue({
-      start: this._prevValues.dateFrom,
-      end: this._prevValues.dateTo,
+    this.params.paramMap$.pipe(takeUntil(this.destroyed$)).subscribe((x) => {
+      const value = x.dateRange;
+      this.range.setValue({
+        start: value.dateFrom,
+        end: value.dateTo,
+      });
+      this._prevValues = { ...value };
     });
+  }
+
+  ngOnDestroy(): void {
+    this.destroyed$.next();
+    this.destroyed$.complete();
   }
 
   public onClosed() {
@@ -66,6 +72,8 @@ export class ChartDatePickerComponent implements OnInit {
     };
     this._prevValues = newValues;
 
-    this.params.setDateRange(newValues);
+    this.params.updateCustomParams((x) => {
+      x.dateRange = { ...newValues };
+    });
   }
 }

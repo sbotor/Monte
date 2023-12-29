@@ -1,4 +1,4 @@
-import time
+import asyncio
 import aiohttp
 from datetime import datetime, timedelta
 import utils
@@ -46,11 +46,9 @@ class AuthClient:
                     self._expires = datetime.utcnow() + timedelta(seconds=resp_json['expires_in'])
                     return True
             except aiohttp.ClientConnectorError:
-                self._logger.warning(
-                    "Connection timeout. Next attempt in {}s"
-                    .format(sleep_period))
+                self._logger.warning(f"Connection timeout. Next attempt in {sleep_period}s")
                 
-                time.sleep(sleep_period)
+                await asyncio.sleep(sleep_period)
                 if(sleep_period < max_sleep_period):
                     attempt += 1
                     sleep_period *= attempt
@@ -84,7 +82,7 @@ class MonteClient:
                 message = "Connection timeout while sending data to API."
                 if critical:
                     self._logger.warning(message + " Critical data - Next attempt in 30s")
-                    time.sleep(30)
+                    await asyncio.sleep(30)
                 else:
                     self._logger.warning(message + " Non-critical data - Ignoring")
                     break

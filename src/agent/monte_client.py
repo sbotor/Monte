@@ -1,3 +1,4 @@
+import time
 import aiohttp
 from datetime import datetime, timedelta
 import utils
@@ -30,16 +31,29 @@ class AuthClient:
         }
 
         self._logger.info('Authenticating.')
-        async with await self._session.post('/connect/token', data=body, ssl=self._config.enable_ssl) as resp:
-            if resp.status != 200:
-                self._logger.warning('Could not authenticate. Status: %s.', resp.status)
-                return False
-            
-            resp_json = await resp.json()
-            self._token = resp_json['access_token']
-            self._expires = datetime.utcnow() + timedelta(seconds=resp_json['expires_in'])
-
-            return True
+        sleep_period = 5
+        max_sleep_period = 600 #10 min
+        attempt = 1
+        while(True):
+            try:
+                async with await self._session.post('/connect/token', data=body, ssl=self._config.enable_ssl) as resp:
+                    if resp.status != 200:
+                        self._logger.warning('Could not authenticate. Status: %s.', resp.status)
+                        return False
+                    
+                    resp_json = await resp.json()
+                    self._token = resp_json['access_token']
+                    self._expires = datetime.utcnow() + timedelta(seconds=resp_json['expires_in'])
+                    return True
+            except aiohttp.ClientConnectorError:
+                self._logger.warning(
+                    "Connection timeout. Next attempt in {}s"
+                    .format(sleep_period))
+                
+                time.sleep(sleep_period)
+                if(sleep_period < max_sleep_period):
+                    attempt += 1
+                    sleep_period *= attempt
 
 class MonteClient:
     def __init__(self, session: aiohttp.ClientSession, authClient: AuthClient, config: config.Config):

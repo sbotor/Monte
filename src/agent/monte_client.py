@@ -74,11 +74,20 @@ class MonteClient:
 
         return resp_text
     
-    async def _execute_core(self, method: str, path='', resp_handler=None, **kwargs):
+    async def _execute_core(self, method: str, path='', resp_handler=None, critical=False, **kwargs):
         resp_handler = resp_handler or self._default_resp_handler
-        
-        async with await self._session.request(method, f'/api/{path}', ssl=self._config.enable_ssl, **kwargs) as resp:
-            return await resp_handler(resp)
+        while True:
+            try:
+                async with await self._session.request(method, f'/api/{path}', ssl=self._config.enable_ssl, **kwargs) as resp:
+                    return await resp_handler(resp)
+            except aiohttp.ClientConnectorError:
+                message = "Connection timeout while sending data to API."
+                if critical:
+                    self._logger.warning(message + " Critical data - Next attempt in 30s")
+                    time.sleep(30)
+                else:
+                    self._logger.warning(message + " Non-critical data - Ignoring")
+                    break
 
     async def _execute(self, method: str, path='', **kwargs):
         if not await self._ensure_auth():
@@ -111,7 +120,7 @@ class MonteClient:
 
         body = monitoring.get_system_info()
 
-        return await self._execute_core('PUT', 'agentMetrics/init', json=body, headers=headers)
+        return await self._execute_core('PUT', 'agentMetrics/init',None, True, json=body, headers=headers)
     
     async def _ensure_init(self):
         if self._initialized:

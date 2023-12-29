@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Monte.AuthServer.Configuration;
@@ -58,14 +58,13 @@ public class AuthSetupWorker : IHostedService
 
     private static async Task PopulateRoles(RoleManager<IdentityRole> manager)
     {
-        var role = await manager.FindByNameAsync(AuthConsts.Roles.MonteAdmin);
+        var admin = await manager.FindByNameAsync(AuthConsts.Roles.MonteAdmin);
+        var user = await manager.FindByNameAsync(AuthConsts.Roles.MonteUser);
         
-        if (role is not null)
-        {
-            return;
-        }
-        
-        await manager.CreateAsync(new() { Name = AuthConsts.Roles.MonteAdmin });
+        if(user == null)
+            await manager.CreateAsync(new() { Name = AuthConsts.Roles.MonteUser });
+        if(admin == null)
+            await manager.CreateAsync(new() { Name = AuthConsts.Roles.MonteAdmin });        
     }
 
     public Task StopAsync(CancellationToken cancellationToken)

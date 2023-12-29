@@ -1,4 +1,4 @@
-using Monte.AuthServer.Helpers;
+﻿using Monte.AuthServer.Helpers;
 using OpenIddict.Abstractions;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
@@ -108,7 +108,7 @@ public static class OpenIddictConfig
         yield return new()
         {
             ClientId = "swagger-ui",
-            RedirectUris = { new("https://localhost:7048/swagger/oauth2-redirect.html") },
+            RedirectUris = { new("https://localhost:7048/swagger/oauth2-redirect.html"), new("https://localhost:7049/swagger/oauth2-redirect.html") },
             Type = ClientTypes.Public,
             Permissions =
             {

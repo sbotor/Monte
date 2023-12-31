@@ -18,5 +18,34 @@ html {
 }
 
 body {
-  margin-bottom: 60px;
+    margin-bottom: 60px;
+    background-color: #303030;
+    margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+nav {
+    height:60px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    background-color: #212121;
+    padding: 0px 20px;
+}
+
+.LogoName {
+    font-family: Roboto, sans-serif;
+    font-size: 20px;
+    line-height: 56px;
+    font-weight: 500;
+    letter-spacing:0.0125em;
+    margin:0px;
+    color: white;
+}
+
+.login {
+    width: 100%;
+    max-width: 300px;
+    padding: 15px;
+    margin: auto;
+    background-color: #616161
 }

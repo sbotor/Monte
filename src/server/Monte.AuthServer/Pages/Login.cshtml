@@ -4,15 +4,16 @@
 @{
     Layout = "Shared/_Layout";
 }
-
-<form method="POST" style="display: flex; flex-direction: column;">
-    <span>
-        <label asp-for="Username">Username</label>
-        <input asp-for="Username"/>
-    </span>
-    <span>
-        <label asp-for="Password">Password</label>
-        <input asp-for="Password" type="password"/>
-    </span>
-    <button type="submit">Login</button>
-</form>
+<div class="login text-black text-center">
+    <form method="POST">
+        <div class="form-floating mb-3">
+            <input asp-for="Username" id="Username" class="form-control" />
+            <label for="Username" asp-for="Username">Username</label>
+        </div>
+        <div class="form-floating mb-3">
+            <input asp-for="Password" class="form-control" type="password" />
+            <label asp-for="Password">Password</label>
+        </div>
+        <button class="w-50 btn-warning" type="submit" style="border-radius: 10px">Login</button>
+    </form>
+</div>

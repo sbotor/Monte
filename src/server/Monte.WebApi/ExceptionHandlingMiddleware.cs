@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Security;
 using Monte.Models.Exceptions;
 
 namespace Monte.WebApi;
@@ -37,6 +38,10 @@ public class ExceptionHandlingMiddleware
                 case BadRequestException badRequest:
                     code = HttpStatusCode.BadRequest;
                     responseTask = resp.WriteAsJsonAsync(badRequest.Message);
+                    break;
+                case SecurityException security:
+                    code = HttpStatusCode.Forbidden;
+                    responseTask = resp.WriteAsJsonAsync(security.Message);
                     break;
                 default:
                     throw;

@@ -66,7 +66,7 @@ public static class DateTimeExtensions
     public static DateTime BeginningOfTheMonth(this DateTime dt)
         => new(dt.Year, dt.Month, 1, 0, 0, 0, dt.Kind);
 
-    public static DateTimeGranularity GetDiffKind(this DateTime left, DateTime right)
+    public static DateTimeGranularity GetGranularity(this DateTime left, DateTime right)
     {
         var diff = left - right;
 

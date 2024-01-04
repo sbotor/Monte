@@ -34,7 +34,7 @@ class AuthClient:
         sleep_period = 5
         max_sleep_period = 600 #10 min
         attempt = 1
-        while(True):
+        while True:
             try:
                 async with await self._session.post('/connect/token', data=body, ssl=self._config.enable_ssl) as resp:
                     if resp.status != 200:
@@ -58,19 +58,20 @@ class MonteClient:
         self._session = session
         self._auth = authClient
         self._config = config
-        self._origin = utils.extract_hostname()
+        self._origin = config.name
         self._id = config.id
+        self._metrics_key = ''
         self._initialized = False
 
         self._logger = logging.getLogger(__name__)
 
     async def _default_resp_handler(self, resp: aiohttp.ClientResponse):
-        resp_text = await resp.text()
-        if not (resp.status >= 200 and resp.status < 300):
-            self._logger.warn('Error executing %s "%s": %s. %s', resp.method, resp.url, resp.status, resp_text)
+        resp_val = await resp.json() if resp.content_type == 'application/json' else await resp.text()
+        if not resp.status >= 200 and resp.status < 300:
+            self._logger.warn('Error executing %s "%s": %s. %s', resp.method, resp.url, resp.status, resp_val)
             return None
 
-        return resp_text
+        return resp_val
     
     async def _execute_core(self, method: str, path='', resp_handler=None, critical=False, **kwargs):
         resp_handler = resp_handler or self._default_resp_handler
@@ -102,7 +103,10 @@ class MonteClient:
         
         return await self._execute_core(method, path, None, headers=headers, **kwargs)
     
-    async def _initialize(self):
+    async def _ensure_init(self):
+        if self._initialized:
+            return True
+        
         monitoring.initialize_monitoring()
         
         if not await self._ensure_auth():
@@ -118,19 +122,19 @@ class MonteClient:
 
         body = monitoring.get_system_info()
 
-        return await self._execute_core('PUT', 'agentMetrics/init',None, True, json=body, headers=headers)
-    
-    async def _ensure_init(self):
-        if self._initialized:
-            return True
-        
-        self._id = await self._initialize()
-        if not self._id:
-            print('Could not initialize agent ID.')
+        response = await self._execute_core('PUT', 'agentMetrics/init', None, True, json=body, headers=headers)
+        if not response:
+            self._logger.error('Could not initialize agent ID.')
             return False
+
+        id = response['agentId']
+        if id != self._id:
+            self._id = id
+            utils.store_agent_id(self._id)
+
+        self._metrics_key = response['metricsKey']
         
         self._initialized = True
-        utils.store_agent_id(self._id)
             
         return True
 
@@ -140,7 +144,7 @@ class MonteClient:
         
         success = await self._auth.authenticate()
         if not success:
-            print('Could not authenticate.')
+            self._logger.error('Could not authenticate.')
         
         return success
     
@@ -148,5 +152,13 @@ class MonteClient:
         await self._ensure_init()
 
         body = monitoring.get_system_resources(self._config.reporting_period)
-        await self._execute('POST', 'agentMetrics', json=body)
+        body['metricsKey'] = self._metrics_key
+
+        key = await self._execute('POST', 'agentMetrics', json=body)
+
+        if not key:
+            self._logger.error('No metrics key response.')
+            return
+        
+        self._metrics_key = key
             

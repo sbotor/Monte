@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Monte.Features.Machines;
+using Monte.Features.Agents;
 using Monte.Models.Exceptions;
 using Monte.Services;
 using Monte.Tests.Infrastructure;
@@ -25,10 +25,13 @@ public class ReportMetricsCommandHandlerTests : DbTests
         var clock = Substitute.For<IClock>();
         clock.Setup(Now);
 
-        _sut = new(Db, _agentContextProvider, clock);
+        var keyGen = Substitute.For<IMetricsKeyGenerator>();
+        keyGen.GenerateKey().Returns("key");
+        
+        _sut = new(Db, _agentContextProvider, clock, keyGen);
 
         using var db = CreateDbContext();
-        db.Add(new Machine
+        db.Add(new Agent
         {
             Name = "agent",
             Id = _agentId,
@@ -36,7 +39,8 @@ public class ReportMetricsCommandHandlerTests : DbTests
             CreatedDateTime = Now.AddDays(-2),
             HeartbeatDateTime = Now.AddDays(-1),
             Cpu = new(),
-            Memory = new()
+            Memory = new(),
+            MetricsKey = "prev key"
         });
         db.SaveChanges();
     }
@@ -47,12 +51,14 @@ public class ReportMetricsCommandHandlerTests : DbTests
         var corePercents = new[] { 0.3, 0.33 };
         var command = new Command(
             Cpu: new() { PercentsUsed = corePercents, Load = 0.2 },
-            Memory: new() { Available = 10, PercentUsed = 0.5, SwapAvailable = 2, SwapPercentUsed = 1.5 });
+            Memory: new() { Available = 10, PercentUsed = 0.5, SwapAvailable = 2, SwapPercentUsed = 1.5 },
+            "prev key");
 
         await _sut.Handle(command, default);
 
-        var machine = await Db.Machines.AsNoTracking().SingleAsync();
-        Assert.Equal(Now, machine.HeartbeatDateTime);
+        var agent = await Db.Agents.AsNoTracking().SingleAsync();
+        Assert.Equal(Now, agent.HeartbeatDateTime);
+        Assert.Equal("key", agent.MetricsKey);
 
         var entry = await Db.MetricsEntries.AsNoTracking()
             .Include(x => x.Cores)
@@ -77,7 +83,7 @@ public class ReportMetricsCommandHandlerTests : DbTests
     public async Task Handle_WhenAgentDoesNotExist_Throws()
     {
         _agentContextProvider.GetContext().Returns(new AgentContext("agent", Guid.NewGuid()));
-        var command = new Command(new(), new());
+        var command = new Command(new(), new(), "key");
 
         await Assert.ThrowsAsync<NotFoundException>(
             () => _sut.Handle(command, default));

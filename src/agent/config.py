@@ -32,6 +32,7 @@ def validate_config(config: 'Config'):
 class Config:
     def __init__(self, config_dict: dict[str]):
         self._config = config_dict
+        self._id = None
 
     @property
     def auth_url(self) -> str:
@@ -71,4 +72,8 @@ class Config:
     
     @property
     def id(self) -> str:
-        return self._config.get('id') or read_agent_id()
+        if self._id is None:
+            id = read_agent_id()
+            self._id = '' if id is None else id
+            
+        return self._id

@@ -6,7 +6,7 @@ namespace Monte.Features.Charts.Helpers;
 
 public record ChartContext(
     MonteDbContext DbContext,
-    Guid MachineId,
+    Guid AgentId,
     DateTime DateFrom,
     DateTime DateTo,
     DateTimeGranularity DateTimeGranularity,
@@ -14,7 +14,7 @@ public record ChartContext(
 
 public interface IChartRequest : IDateRange
 {
-    Guid MachineId { get; }
+    Guid AgentId { get; }
 }
 
 public interface IChartHelper<in TRequest> where TRequest : IChartRequest
@@ -47,11 +47,11 @@ public class ChartHelper<TRequest> : IChartHelper<TRequest> where TRequest : ICh
     {
         var from = request.DateFrom.ToUniversalTime();
         var to = request.DateTo.ToUniversalTime().RoundToNextDay();
-        var timeDiffKind = to.GetDiffKind(from);
+        var timeDiffKind = to.GetGranularity(from);
 
         var context = new ChartContext(
             _dbContext,
-            request.MachineId,
+            request.AgentId,
             from,
             to,
             timeDiffKind,

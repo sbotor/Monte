@@ -1,16 +1,16 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Monte.Extensions;
-using Monte.Features.Machines.Models;
+using Monte.Features.Agents.Models;
 using Monte.Models;
 
-namespace Monte.Features.Machines.Queries;
+namespace Monte.Features.Agents.Queries;
 
-public static class GetMachines
+public static class GetAgents
 {
-    public record Query(Paging Paging, Sorting Sorting) : IRequest<PagedResponse<MachineOverview>>;
+    public record Query(Paging Paging, Sorting Sorting) : IRequest<PagedResponse<AgentOverview>>;
 
-    internal class Handler : IRequestHandler<Query, PagedResponse<MachineOverview>>
+    internal class Handler : IRequestHandler<Query, PagedResponse<AgentOverview>>
     {
         private readonly MonteDbContext _context;
 
@@ -19,9 +19,9 @@ public static class GetMachines
             _context = context;
         }
 
-        public Task<PagedResponse<MachineOverview>> Handle(Query request, CancellationToken cancellationToken)
-            => Order(_context.Machines.AsNoTracking(), request.Sorting)
-                .Select(x => new MachineOverview
+        public Task<PagedResponse<AgentOverview>> Handle(Query request, CancellationToken cancellationToken)
+            => Order(_context.Agents.AsNoTracking(), request.Sorting)
+                .Select(x => new AgentOverview
                 {
                     Id = x.Id,
                     DisplayName = x.DisplayName,
@@ -30,7 +30,7 @@ public static class GetMachines
                 })
                 .PaginateAsync(request.Paging, cancellationToken);
 
-        private static IOrderedQueryable<Machine> Order(IQueryable<Machine> query, Sorting sorting)
+        private static IOrderedQueryable<Agent> Order(IQueryable<Agent> query, Sorting sorting)
             => sorting.Value switch
             {
                 "lastHeartbeat" => query.OrderBy(x => x.HeartbeatDateTime),

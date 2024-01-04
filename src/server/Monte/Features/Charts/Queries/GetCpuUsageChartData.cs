@@ -11,7 +11,7 @@ namespace Monte.Features.Charts.Queries;
 public static class GetCpuUsageChartData
 {
     public record Query(
-        Guid MachineId,
+        Guid AgentId,
         DateTime DateFrom,
         DateTime DateTo,
         ChartAggregationType AggregationType,
@@ -40,7 +40,7 @@ public static class GetCpuUsageChartData
             if (!query.Core.HasValue)
             {
                 var entries = await context.DbContext.MetricsEntries.AsNoTracking()
-                    .OrderedFromMachineAndTime(context.MachineId, context.DateFrom, context.DateTo)
+                    .OrderedFromAgentAndTime(context.AgentId, context.DateFrom, context.DateTo)
                     .ToArrayAsync(cancellationToken);
 
                 data = context.ResultBuilder.Group(entries, x => x.ReportDateTime)
@@ -50,7 +50,7 @@ public static class GetCpuUsageChartData
             else
             {
                 var coreEntries = await context.DbContext.CoreUsageEntries.AsNoTracking()
-                    .Where(x => x.Entry.MachineId == context.MachineId)
+                    .Where(x => x.Entry.AgentId == context.AgentId)
                     .Where(x => x.Entry.ReportDateTime >= context.DateFrom
                         && x.Entry.ReportDateTime < context.DateTo)
                     .Where(x => x.Ordinal == query.Core)

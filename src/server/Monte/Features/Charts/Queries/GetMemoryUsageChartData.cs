@@ -12,7 +12,7 @@ namespace Monte.Features.Charts.Queries;
 public static class GetMemoryUsageChartData
 {
     public record Query(
-        Guid MachineId,
+        Guid AgentId,
         DateTime DateFrom,
         DateTime DateTo,
         ChartAggregationType AggregationType,
@@ -37,7 +37,7 @@ public static class GetMemoryUsageChartData
             CancellationToken cancellationToken)
         {
             var entries = await context.DbContext.MetricsEntries.AsNoTracking()
-                .OrderedFromMachineAndTime(context.MachineId, context.DateFrom, context.DateTo)
+                .OrderedFromAgentAndTime(context.AgentId, context.DateFrom, context.DateTo)
                 .ToArrayAsync(cancellationToken);
 
             Func<MetricsEntry, double> valueSelector = query.Swap

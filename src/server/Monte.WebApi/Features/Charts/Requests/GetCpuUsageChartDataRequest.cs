@@ -10,6 +10,6 @@ public class GetCpuUsageChartDataRequest
     public ChartAggregationType AggregationType { get; set; }
     public int? Core { get; set; }
 
-    public GetCpuUsageChartData.Query ToQuery(Guid machineId)
-        => new(machineId, DateFrom, DateTo, AggregationType, Core);
+    public GetCpuUsageChartData.Query ToQuery(Guid agentId)
+        => new(agentId, DateFrom, DateTo, AggregationType, Core);
 }

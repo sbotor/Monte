@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Monte.Features.Charts.Models;
 using Monte.WebApi.Auth;
 using Monte.WebApi.Features.Charts.Requests;
 
@@ -18,17 +19,17 @@ public class ChartsController : ControllerBase
         _sender = sender;
     }
 
-    [HttpGet("{machineId:guid}/cpu")]
-    public async Task<IActionResult> GetCpuUsage(
-        Guid machineId,
+    [HttpGet("{agentId:guid}/cpu")]
+    public Task<ChartData<double>> GetCpuUsage(
+        Guid agentId,
         [FromQuery] GetCpuUsageChartDataRequest request,
         CancellationToken cancellationToken)
-        => Ok(await _sender.Send(request.ToQuery(machineId), cancellationToken));
+        => _sender.Send(request.ToQuery(agentId), cancellationToken);
     
-    [HttpGet("{machineId:guid}/memory")]
-    public async Task<IActionResult> GetMemoryUsage(
-        Guid machineId,
+    [HttpGet("{agentId:guid}/memory")]
+    public Task<ChartData<double>> GetMemoryUsage(
+        Guid agentId,
         [FromQuery] GetMemoryUsageChartDataRequest request,
         CancellationToken cancellationToken)
-        => Ok(await _sender.Send(request.ToQuery(machineId), cancellationToken));
+        => _sender.Send(request.ToQuery(agentId), cancellationToken);
 }

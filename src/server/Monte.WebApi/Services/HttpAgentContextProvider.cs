@@ -21,6 +21,18 @@ public class HttpAgentContextProvider : IAgentContextProvider
         return new(_agent);
     }
 
+    public async ValueTask<AgentContext?> GetContextOrDefault(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await GetContext(cancellationToken);
+        }
+        catch (InvalidOperationException)
+        {
+            return null;
+        }
+    }
+
     private AgentContext ExtractContext()
     {
         var httpContext = _httpContextAccessor.HttpContext;

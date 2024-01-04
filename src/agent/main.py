@@ -29,7 +29,7 @@ async def run(api: MonteClient, config):
             await api.push_report()
             await asyncio.sleep(config.reporting_period)
         except Exception as e:
-            logging.warning(e)
+            logging.error(f'Exception occurred.', exc_info=e)
     
 
 if __name__ == '__main__':

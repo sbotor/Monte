@@ -2,12 +2,12 @@
 
 public static class MetricsQueryExtensions
 {
-    public static IQueryable<MetricsEntry> OrderedFromMachineAndTime(
+    public static IQueryable<MetricsEntry> OrderedFromAgentAndTime(
         this IQueryable<MetricsEntry> query,
-        Guid machineId,
+        Guid agentId,
         DateTime from,
         DateTime to)
-        => query.Where(x => x.MachineId == machineId)
+        => query.Where(x => x.AgentId == agentId)
             .Where(x => x.ReportDateTime >= from
                 && x.ReportDateTime < to)
             .OrderBy(x => x.ReportDateTime);

@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Monte.Contracts;
 using Monte.Models.Exceptions;
 using Monte.Services;
 
@@ -7,7 +8,8 @@ namespace Monte.Features.Metrics.Commands;
 
 public static class ReportMetrics
 {
-    public record Command(Command.CpuUsage Cpu, Command.MemoryUsage Memory) : IRequest
+    public record Command(Command.CpuUsage Cpu, Command.MemoryUsage Memory, string MetricsKey)
+        : IRequest<string>, IMetricsKeyRequest
     {
         public class CpuUsage
         {
@@ -24,35 +26,42 @@ public static class ReportMetrics
         }
     }
 
-    internal class Handler : IRequestHandler<Command>
+    internal class Handler : IRequestHandler<Command, string>
     {
         private readonly MonteDbContext _dbContext;
         private readonly IAgentContextProvider _agentContextProvider;
         private readonly IClock _clock;
+        private readonly IMetricsKeyGenerator _metricsKeyGenerator;
 
-        public Handler(MonteDbContext dbContext, IAgentContextProvider agentContextProvider, IClock clock)
+        public Handler(
+            MonteDbContext dbContext,
+            IAgentContextProvider agentContextProvider,
+            IClock clock,
+            IMetricsKeyGenerator metricsKeyGenerator)
         {
             _dbContext = dbContext;
             _agentContextProvider = agentContextProvider;
             _clock = clock;
+            _metricsKeyGenerator = metricsKeyGenerator;
         }
         
-        public async Task Handle(Command request, CancellationToken cancellationToken)
+        public async Task<string> Handle(Command request, CancellationToken cancellationToken)
         {
             var agentContext = await _agentContextProvider.GetContext(CancellationToken.None);
             var agentId = agentContext.RequiredId;
             var now = _clock.UtcNow;
             
-            var machine = await _dbContext.Machines.FirstOrDefaultAsync(x => x.Id == agentId, CancellationToken.None)
+            var agent = await _dbContext.Agents.FirstOrDefaultAsync(x => x.Id == agentId, CancellationToken.None)
                 ?? throw new NotFoundException();
-            machine.HeartbeatDateTime = now;
+            agent.HeartbeatDateTime = now;
+            agent.MetricsKey = _metricsKeyGenerator.GenerateKey();
 
             var cpu = request.Cpu;
             var memory = request.Memory;
             
             _dbContext.Add(new MetricsEntry
             {
-                MachineId = agentId,
+                AgentId = agentId,
                 ReportDateTime = now,
                 Cores = cpu.PercentsUsed.Select((x, i) => new CoreUsageEntry
                 {
@@ -74,6 +83,8 @@ public static class ReportMetrics
             });
 
             await _dbContext.SaveChangesAsync(CancellationToken.None);
+
+            return agent.MetricsKey;
         }
     }
 }

@@ -1,13 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using Monte.Features.Machines;
+using Monte.Features.Agents;
 using Monte.Features.Metrics;
 
 namespace Monte;
 
 public class MonteDbContext : DbContext
 {
-    public DbSet<Machine> Machines => Set<Machine>();
+    public DbSet<Agent> Agents => Set<Agent>();
     public DbSet<MetricsEntry> MetricsEntries => Set<MetricsEntry>();
     public DbSet<CoreUsageEntry> CoreUsageEntries => Set<CoreUsageEntry>();
     
@@ -18,7 +18,7 @@ public class MonteDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.ApplyConfiguration(new MachineEntityConfiguration());
+        modelBuilder.ApplyConfiguration(new AgentEntityConfiguration());
 
         modelBuilder.ApplyConfiguration(new MetricsEntryConfiguration());
         modelBuilder.ApplyConfiguration(new CoreUsageEntryConfiguration());

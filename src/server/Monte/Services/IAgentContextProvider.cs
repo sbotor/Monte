@@ -5,6 +5,7 @@ namespace Monte.Services;
 public interface IAgentContextProvider
 {
     ValueTask<AgentContext> GetContext(CancellationToken cancellationToken = default);
+    ValueTask<AgentContext?> GetContextOrDefault(CancellationToken cancellationToken = default);
 }
 
 public class AgentContext

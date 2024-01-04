@@ -1,15 +1,15 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Monte.Features.Machines.Models;
+using Monte.Features.Agents.Models;
 using Monte.Models.Exceptions;
 
-namespace Monte.Features.Machines.Queries;
+namespace Monte.Features.Agents.Queries;
 
-public static class GetMachineDetails
+public static class GetAgentDetails
 {
-    public record Query(Guid Id) : IRequest<MachineDetails>;
+    public record Query(Guid Id) : IRequest<AgentDetails>;
 
-    internal class Handler : IRequestHandler<Query, MachineDetails>
+    internal class Handler : IRequestHandler<Query, AgentDetails>
     {
         private readonly MonteDbContext _dbContext;
 
@@ -18,9 +18,9 @@ public static class GetMachineDetails
             _dbContext = dbContext;
         }
         
-        public async Task<MachineDetails> Handle(Query request, CancellationToken cancellationToken)
+        public async Task<AgentDetails> Handle(Query request, CancellationToken cancellationToken)
         {
-            var machine = await _dbContext.Machines.AsNoTracking()
+            var machine = await _dbContext.Agents.AsNoTracking()
                 .Include(x => x.Cpu)
                 .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken)
                 ?? throw new NotFoundException();

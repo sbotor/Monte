@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Monte.Features.Machines;
+using Monte.Features.Agents;
 
 namespace Monte.Features.Metrics;
 
@@ -13,7 +13,7 @@ public class MetricsEntry
 
     public ICollection<CoreUsageEntry> Cores { get; set; } = new List<CoreUsageEntry>();
     
-    public Guid MachineId { get; set; }
+    public Guid AgentId { get; set; }
 }
 
 public class CoreUsageEntry
@@ -48,9 +48,9 @@ internal class MetricsEntryConfiguration : IEntityTypeConfiguration<MetricsEntry
         builder.OwnsOne(x => x.Cpu);
         builder.OwnsOne(x => x.Memory);
         
-        builder.HasOne<Machine>()
+        builder.HasOne<Agent>()
             .WithMany()
-            .HasForeignKey(x => x.MachineId);
+            .HasForeignKey(x => x.AgentId);
     }
 }
 

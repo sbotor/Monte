@@ -3,7 +3,6 @@ defaults:
   client_id: 'monte_agent'
   client_secret: '2VoONsTTvGCryUrTxMY0'
   name: 'test-agent'
-  id: ''
   reporting_period: 5
   enable_ssl: false
 environments:

@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Monte.Behaviors;
 using Monte.Features.Charts.Helpers;
+using Monte.Services;
 
 [assembly: InternalsVisibleTo("Monte.Tests")]
 
@@ -21,6 +22,7 @@ public static class Setup
         {
             x.RegisterServicesFromAssembly(ThisAssembly);
 
+            x.AddOpenBehavior(typeof(AgentValidationBehavior<,>));
             x.AddOpenBehavior(typeof(ValidationBehavior<,>));
         });
 
@@ -31,6 +33,7 @@ public static class Setup
 
         services.AddSingleton<IClock, Clock>();
         services.AddSingleton<IChartResultBuilder, ChartResultBuilder>();
+        services.AddSingleton<IMetricsKeyGenerator, MetricsKeyGenerator>();
 
         services.AddScoped(typeof(IChartHelper<>), typeof(ChartHelper<>));
         

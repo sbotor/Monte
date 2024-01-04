@@ -60,13 +60,16 @@ public static class DateTimeExtensions
             ? dt.Minute + (15 - remainder)
             : dt.Minute - remainder;
 
-        return new(dt.Year, dt.Month, dt.Day, dt.Hour, minutes, 0, dt.Kind);
+        return minutes == 60
+            ? new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, 0, 0, dt.Kind)
+                .AddHours(1)
+            : new(dt.Year, dt.Month, dt.Day, dt.Hour, minutes, 0, dt.Kind);
     }
     
     public static DateTime BeginningOfTheMonth(this DateTime dt)
         => new(dt.Year, dt.Month, 1, 0, 0, 0, dt.Kind);
 
-    public static DateTimeGranularity GetDiffKind(this DateTime left, DateTime right)
+    public static DateTimeGranularity GetGranularity(this DateTime left, DateTime right)
     {
         var diff = left - right;
 

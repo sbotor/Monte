@@ -1,6 +1,6 @@
-﻿namespace Monte.Features.Machines.Models;
+﻿namespace Monte.Features.Agents.Models;
 
-public class MachineDetails
+public class AgentDetails
 {
     public Guid Id { get; set; }
     public string DisplayName { get; set; } = null!;

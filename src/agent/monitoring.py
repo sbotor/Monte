@@ -72,7 +72,7 @@ def _get_cpu_usage(period: int):
         load_idx = 2
     
     total_load = psutil.getloadavg()[load_idx]
-    load = total_load / psutil.cpu_count()
+    load = 100 * total_load / psutil.cpu_count()
 
     return CpuUsage(percentsUsed=percents, load=load)
 

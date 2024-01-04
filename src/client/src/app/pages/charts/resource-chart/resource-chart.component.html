@@ -1,13 +1,13 @@
 <mat-drawer-container *ngIf="data$ | async; let data; else spinner" class="container">
   <mat-drawer class="drawer" mode="side" opened>
     <div class="drawer-content">
-      <h1>{{ data.machine.displayName }}</h1>
+      <h1>{{ data.agent.displayName }}</h1>
       <mat-divider class="divider"></mat-divider>
       <app-chart-date-picker></app-chart-date-picker>
       <app-chart-type-select></app-chart-type-select>
       <app-aggregation-type-select></app-aggregation-type-select>
       <app-cpu-core-select *ngIf="data.params.chartType === 'cpu'"
-        [cpuCoreCount]="data.machine.cpuLogicalCount"></app-cpu-core-select>
+        [cpuCoreCount]="data.agent.cpuLogicalCount"></app-cpu-core-select>
       <app-memory-type-toggle *ngIf="data.params.chartType === 'memory'"></app-memory-type-toggle>
     </div>
   </mat-drawer>

@@ -5,25 +5,25 @@ import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { BehaviorSubject, Subject, takeUntil } from 'rxjs';
 import {
-  MachineOverview,
-  MachinesService,
-} from '@features/machines/machines.service';
+  AgentOverview,
+  AgentsService,
+} from '@features/agents/agents.service';
 import { PagingInfo } from '@core/models';
 import { SpinnerComponent } from '@components/spinner';
 import { Router } from '@angular/router';
 
 @Component({
-  selector: 'app-machine-list',
+  selector: 'app-agent-list',
   standalone: true,
   imports: [CommonModule, SpinnerComponent, MatTableModule, MatPaginatorModule],
-  templateUrl: './machine-list.component.html',
-  styleUrl: './machine-list.component.scss',
+  templateUrl: './agent-list.component.html',
+  styleUrl: './agent-list.component.scss',
 })
-export class MachineListComponent implements OnInit, OnDestroy {
+export class AgentListComponent implements OnInit, OnDestroy {
   private readonly destroyed$ = new Subject<void>();
 
-  private readonly _machines = new BehaviorSubject<MachineOverview[]>([]);
-  public readonly machines$ = this._machines.asObservable();
+  private readonly _agents = new BehaviorSubject<AgentOverview[]>([]);
+  public readonly agents$ = this._agents.asObservable();
 
   private readonly _isLoading = signal(true);
   public readonly isLoading = this._isLoading.asReadonly();
@@ -38,7 +38,7 @@ export class MachineListComponent implements OnInit, OnDestroy {
 
   public readonly columns = ['displayName', 'id', 'lastHeartbeat', 'created'];
 
-  constructor(private readonly api: MachinesService, private readonly router: Router) {}
+  constructor(private readonly api: AgentsService, private readonly router: Router) {}
 
   ngOnDestroy(): void {
     this.destroyed$.next();
@@ -60,7 +60,7 @@ export class MachineListComponent implements OnInit, OnDestroy {
   }
 
   public onClickedRow(id: string) {
-    this.router.navigate(['machines', id, 'chart']);
+    this.router.navigate(['agents', id, 'chart']);
   }
 
   private fetchData() {
@@ -73,10 +73,10 @@ export class MachineListComponent implements OnInit, OnDestroy {
 
     this._isLoading.set(true);
     this.api
-      .getMachines(params)
+      .getAgents(params)
       .pipe(takeUntil(this.destroyed$))
       .subscribe((x) => {
-        this._machines.next(x.items);
+        this._agents.next(x.items);
         this._pagingInfo.set({ ...x });
 
         this._isLoading.set(false);

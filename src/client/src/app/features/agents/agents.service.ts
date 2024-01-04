@@ -2,21 +2,21 @@ import { Injectable } from '@angular/core';
 import { ApiService } from '@core/api.service';
 import { PagedResponse } from '@core/models';
 
-export interface MachineOverview {
+export interface AgentOverview {
   id: string;
   displayName: string;
   lastHeartbeat: Date;
   created: Date;
 }
 
-export interface GetMachinesRequest {
+export interface GetAgentsRequest {
   page: number;
   pageSize: number;
   orderBy?: string;
   orderByDesc: boolean;
 }
 
-export interface MachineDetails {
+export interface AgentDetails {
   id: string;
   displayName: string;
   cpuLogicalCount: number;
@@ -25,14 +25,14 @@ export interface MachineDetails {
 @Injectable({
   providedIn: 'root',
 })
-export class MachinesService {
+export class AgentsService {
   constructor(private readonly api: ApiService) {}
 
-  public getMachines(query: GetMachinesRequest) {
-    return this.api.get<PagedResponse<MachineOverview>>('machines', query);
+  public getAgents(query: GetAgentsRequest) {
+    return this.api.get<PagedResponse<AgentOverview>>('agents', query);
   }
 
-  public getMachineDetails(id: string) {
-    return this.api.get<MachineDetails>(`machines/${id}`);
+  public getAgentDetails(id: string) {
+    return this.api.get<AgentDetails>(`agents/${id}`);
   }
 }

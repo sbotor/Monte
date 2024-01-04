@@ -35,7 +35,7 @@ export class ChartsDataService {
       core: params.cpuCore,
     };
 
-    return this.api.getCpuUsage(params.machineId, request).pipe(
+    return this.api.getCpuUsage(params.agentId, request).pipe(
       switchMap((x) => {
         this.setNewValues(x);
         return of(true);
@@ -49,7 +49,7 @@ export class ChartsDataService {
       swap: params.swapMemory,
     };
 
-    return this.api.getMemoryUsage(params.machineId, request).pipe(
+    return this.api.getMemoryUsage(params.agentId, request).pipe(
       switchMap((x) => {
         this.setNewValues(x);
         return of(true);

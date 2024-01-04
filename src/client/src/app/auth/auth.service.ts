@@ -13,7 +13,7 @@ import { Router } from '@angular/router';
 export interface UserInfo {
   id: string;
   name: string;
-  role: string;
+  admin: boolean;
 }
 
 @Injectable({
@@ -58,8 +58,12 @@ export class AuthService {
 
       this.update(true);
 
-      const state = this.oauth.state;
+      let state = this.oauth.state;
       if (state && state.length > 0) {
+        if (state.startsWith('%2F')) {
+          state = state.substring(3);
+        }
+
         this.router.navigateByUrl(state);
       }
     });
@@ -93,7 +97,7 @@ export class AuthService {
     const data: UserInfo = {
       id: claims['sub'],
       name: claims['name'],
-      role: claims['role'],
+      admin: claims['role'] === 'monte_admin',
     };
 
     this._user.next(data);

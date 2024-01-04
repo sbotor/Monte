@@ -10,6 +10,7 @@ namespace Monte.AuthServer.Features.Users;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(AuthenticationSchemes = AuthSchemes.TokenValidation)]
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
@@ -49,14 +50,9 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> GetUsers()
     {
         var result = await _userService.GetUsers();
-        if (result.ErrType == Result.ErrorType.None)
-        {
-            return Ok(result.Object);
-        }
-        else
-        {
-            return BadRequest(result.ErrorMessage);
-        }
+        return result.ErrType == Result.ErrorType.None
+            ? Ok(result.Object)
+            : BadRequest(result.ErrorMessage);
     }
 
     [HttpDelete("{userId}")]

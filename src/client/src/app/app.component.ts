@@ -6,6 +6,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { AuthService } from '@auth/auth.service';
 import { SpinnerComponent } from '@components/spinner';
+import { map } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -25,6 +26,7 @@ export class AppComponent {
 
   public readonly loggedIn$ = this.auth.loginSuccessful$;
   public readonly user$ = this.auth.user$;
+  public readonly isAdmin$ = this.auth.user$.pipe(map(x => x.admin));
 
   constructor(private readonly auth: AuthService) {
     this.auth.configure();

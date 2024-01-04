@@ -102,5 +102,6 @@ internal static class Setup
             });
         
         services.AddAuthentication(AuthSchemes.TokenValidation);
+        services.AddAuthorization();
     }
 }

@@ -2,7 +2,7 @@ import { ChartAggregationType, DateRange } from './charts.service';
 import { ChartType } from './models';
 
 export interface ChartParamValues {
-  machineId: string;
+  agentId: string;
   dateRange: DateRange;
   chartType: ChartType;
   aggregationType: ChartAggregationType;

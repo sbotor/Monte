@@ -18,9 +18,9 @@ import {
 import { MatDividerModule } from '@angular/material/divider';
 import { CpuCoreSelectComponent } from '@features/charts/cpu-core-select/cpu-core-select.component';
 import {
-  MachineDetails,
-  MachinesService,
-} from '@features/machines/machines.service';
+  AgentDetails,
+  AgentsService,
+} from '@features/agents/agents.service';
 import { MemoryTypeToggleComponent } from '@features/charts/memory-type-toggle/memory-type-toggle.component';
 import { ChartsDataService } from '@features/charts/charts-data.service';
 import { AggregationTypeSelectComponent } from '@features/charts/aggregation-type-select/aggregation-type-select.component';
@@ -31,7 +31,7 @@ import { ChartTypeSelectComponent } from '@features/charts/chart-type-select/cha
 
 interface ResourceChartData {
   params: ChartParamValues;
-  machine: MachineDetails;
+  agent: AgentDetails;
 }
 
 @Component({
@@ -59,13 +59,13 @@ export class ResourceChartComponent implements OnInit, OnDestroy {
   public readonly chartOptions = this.params.chartOptions;
   public readonly isLoading = this.params.isLoading;
 
-  private readonly _machine = new ReplaySubject<MachineDetails>(1);
+  private readonly _agent = new ReplaySubject<AgentDetails>(1);
   public readonly data$ = combineLatest([
     this.params.paramMap$,
-    this._machine,
+    this._agent,
   ]).pipe(
     map((x): ResourceChartData => {
-      return { params: x[0], machine: x[1] };
+      return { params: x[0], agent: x[1] };
     })
   );
 
@@ -73,7 +73,7 @@ export class ResourceChartComponent implements OnInit, OnDestroy {
     private readonly data: ChartsDataService,
     private readonly route: ActivatedRoute,
     private readonly params: ChartsParamsService,
-    private readonly machines: MachinesService
+    private readonly agents: AgentsService
   ) {}
 
   ngOnInit(): void {
@@ -81,11 +81,11 @@ export class ResourceChartComponent implements OnInit, OnDestroy {
       .pipe(
         takeUntil(this.destroyed$),
         map((x) => x.get('id')!),
-        switchMap((x) => this.machines.getMachineDetails(x))
+        switchMap((x) => this.agents.getAgentDetails(x))
       )
       .subscribe((x) => {
-        this.params.updateCustomParams((y) => (y.machineId = x.id));
-        this._machine.next(x);
+        this.params.updateCustomParams((y) => (y.agentId = x.id));
+        this._agent.next(x);
       });
 
     this.data$

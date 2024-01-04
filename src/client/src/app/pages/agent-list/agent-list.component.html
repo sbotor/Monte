@@ -1,7 +1,7 @@
 <div>
-  <h1>Machines</h1>
+  <h1>Agents</h1>
 
-  <table *ngIf="!isLoading(); else spinner" mat-table [dataSource]="machines$">
+  <table *ngIf="!isLoading(); else spinner" mat-table [dataSource]="agents$">
     <ng-container matColumnDef="displayName">
       <th mat-header-cell *matHeaderCellDef>Name</th>
       <td mat-cell *matCellDef="let element"><b>{{ element.displayName }}</b></td>

@@ -20,7 +20,7 @@ export const chartOptionsDefaults = (): ChartOptions => {
 
 export const chartParamMapDefaults = (clock: ClockService): ChartParamMap => {
   return new ChartParamMap({
-    machineId: '',
+    agentId: '',
     dateRange: clock.todayRange(),
     chartType: 'cpu',
     aggregationType: 'Avg',

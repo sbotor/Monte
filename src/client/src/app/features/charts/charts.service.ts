@@ -34,11 +34,11 @@ export interface MemoryUsageChartParams extends ChartParams {
 export class ChartsService {
   constructor(private readonly api: ApiService, private readonly clock: ClockService) {}
 
-  public getCpuUsage(machineId: string, params: CpuUsageChartParams) {
-    return this.api.get<ChartData<number>>(`charts/${machineId}/cpu`, params);
+  public getCpuUsage(agentId: string, params: CpuUsageChartParams) {
+    return this.api.get<ChartData<number>>(`charts/${agentId}/cpu`, params);
   }
 
-  public getMemoryUsage(machineId: string, params: MemoryUsageChartParams) {
-    return this.api.get<ChartData<number>>(`charts/${machineId}/memory`, params);
+  public getMemoryUsage(agentId: string, params: MemoryUsageChartParams) {
+    return this.api.get<ChartData<number>>(`charts/${agentId}/memory`, params);
   }
 }

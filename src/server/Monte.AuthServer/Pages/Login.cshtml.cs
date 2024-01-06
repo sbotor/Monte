@@ -5,14 +5,15 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Options;
 using Monte.AuthServer.Configuration;
+using Monte.AuthServer.Data;
 
 namespace Monte.AuthServer.Pages;
 
 [AllowAnonymous]
 public class Login : PageModel
 {
-    private readonly UserManager<IdentityUser> _userManager;
-    private readonly SignInManager<IdentityUser> _signInManager;
+    private readonly UserManager<AppUser> _userManager;
+    private readonly SignInManager<AppUser> _signInManager;
     private readonly AuthSettings _settings;
 
     [FromForm]
@@ -24,8 +25,8 @@ public class Login : PageModel
     public string Password { get; set; } = null!;
     
     public Login(
-        UserManager<IdentityUser> userManager,
-        SignInManager<IdentityUser> signInManager,
+        UserManager<AppUser> userManager,
+        SignInManager<AppUser> signInManager,
         IOptions<AuthSettings> options)
     {
         _userManager = userManager;

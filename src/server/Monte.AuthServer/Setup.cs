@@ -1,12 +1,10 @@
 ﻿using System.Text;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Monte.AuthServer.Configuration;
+using Monte.AuthServer.Data;
 using Monte.AuthServer.Helpers;
 using Monte.AuthServer.Services;
-using OpenIddict.Server.AspNetCore;
-using OpenIddict.Validation.AspNetCore;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace Monte.AuthServer;
@@ -42,15 +40,13 @@ internal static class Setup
     }
 
     private static void AddIdentity(this IServiceCollection services)
-    {
-        services.AddIdentity<IdentityUser, IdentityRole>(x =>
+        => services.AddIdentity<AppUser, AppRole>(x =>
             {
                 x.ClaimsIdentity.UserIdClaimType = Claims.Subject;
                 x.ClaimsIdentity.UserNameClaimType = Claims.Name;
                 x.ClaimsIdentity.RoleClaimType = Claims.Role;
             })
             .AddEntityFrameworkStores<AuthDbContext>();
-    }
 
     private static void ConfigureOpenIddict(this IServiceCollection services,
         TokenSettings settings)

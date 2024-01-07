@@ -1,10 +1,12 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { UserRole } from '@auth/roles';
 import { environment } from 'environments/environment.development';
 
 export interface UserDetails {
   id: string;
   name: string;
+  role: UserRole;
 }
 
 export interface CreateUserRequest {
@@ -16,7 +18,7 @@ export interface CreateUserRequest {
   providedIn: 'root'
 })
 export class UsersService {
-  public readonly _baseUrl = `${environment.authRootUrl}api/users`;
+  public readonly _baseUrl = `${environment.authRootUrl}api/users/`;
 
   constructor(private readonly http: HttpClient) { }
 
@@ -26,5 +28,9 @@ export class UsersService {
 
   public createUser(request: CreateUserRequest) {
     return this.http.post<UserDetails>(this._baseUrl, request);
+  }
+
+  public deleteUser(id: string) {
+    return this.http.delete(this._baseUrl + id);
   }
 }

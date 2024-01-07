@@ -20,6 +20,8 @@ public class UsersController : ControllerBase
         _userService = userService;
     }
 
+    // TODO: this should somehow be done at the first startup.
+    // Maybe the admin should be seeded with a default pass and cannot be deleted?
     [HttpPost("root")]
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status201Created)]
@@ -71,20 +73,22 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> ChangePassword(ChangePasswordRequest request)
+    public async Task<IActionResult> ChangePassword(
+        string? userId,
+        ChangePasswordRequest request)
     {
         var isAdmin = HttpContext.User.IsInRole(AuthConsts.Roles.MonteAdmin);
 
         var requesterId = HttpContext.User.GetClaim("sub");
 
-        if (requesterId.IsNullOrEmpty() && (request.UserId.IsNullOrEmpty() || !isAdmin))
+        if (requesterId.IsNullOrEmpty() && (userId.IsNullOrEmpty() || !isAdmin))
         {
             return BadRequest("The request does not contain information about the user");
         }
 
-        if (!isAdmin || (isAdmin && request.UserId.IsNullOrEmpty()))
+        if (!isAdmin || (isAdmin && userId.IsNullOrEmpty()))
         {
-            request.UserId = requesterId;
+            userId = requesterId;
         }
 
         var result = await _userService.ChangePassword(request);

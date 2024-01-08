@@ -2,30 +2,30 @@ import { AbstractControl, ValidationErrors } from '@angular/forms';
 
 const minLength = 6;
 
-type ErrorKeys = 'uppercase' | 'lowercase' | 'digit' | 'nonAlpha' | 'length';
+type ErrorKeys = 'passUppercase' | 'passLowercase' | 'passDigit' | 'passNonAlpha' | 'passMinLength';
 
 type Errors = {
   [K in ErrorKeys]: string | null;
 };
 
 const errorKeys: (keyof Errors)[] = [
-  'uppercase',
-  'lowercase',
-  'digit',
-  'nonAlpha',
-  'length',
+  'passUppercase',
+  'passLowercase',
+  'passDigit',
+  'passNonAlpha',
+  'passMinLength',
 ];
 
-const isUppercase = (c: string) => {
-  return c === c.toUpperCase();
+const isUppercase = (c: number) => {
+  return c >= 65 && c <= 90;
 };
 
-const isLowercase = (c: string) => {
-  return c === c.toLowerCase();
+const isLowercase = (c: number) => {
+  return c >= 97 && c <= 122;
 };
 
-const isDigit = (c: string) => {
-  return false;
+const isDigit = (c: number) => {
+  return c >= 48 && c <= 57;
 }
 
 export const passwordValidator = (
@@ -33,28 +33,29 @@ export const passwordValidator = (
 ): ValidationErrors | null => {
   const value = control.value as string;
   const errors: Errors = {
-    uppercase: 'Uppercase character is required',
-    lowercase: 'Lowercase character is required',
-    digit: 'Digit is required',
-    nonAlpha: 'Non-alphanumeric character is required',
-    length: `At least ${minLength} characters are required`,
+    passUppercase: 'Uppercase character is required',
+    passLowercase: 'Lowercase character is required',
+    passDigit: 'Digit is required',
+    passNonAlpha: 'Non-alphanumeric character is required',
+    passMinLength: `At least ${minLength} characters are required`,
   };
 
   if (value.length >= minLength) {
-    errors.length = null;
+    errors.passMinLength = null;
   }
 
   for (let i = 0; i < value.length; i++) {
-    const c = value.charAt(i);
+    const c = value.charCodeAt(i);
+    console.log(c);
 
     if (isUppercase(c)) {
-      errors.uppercase = null;
+      errors.passUppercase = null;
     } else if (isLowercase(c)) {
-      errors.lowercase = null;
+      errors.passLowercase = null;
     } else if (isDigit(c)) {
-      errors.digit = null;
+      errors.passDigit = null;
     } else {
-      errors.nonAlpha = null;
+      errors.passNonAlpha = null;
     }
   }
 

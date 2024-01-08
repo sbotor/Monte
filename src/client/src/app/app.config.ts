@@ -7,6 +7,7 @@ import { provideOAuthClient } from 'angular-oauth2-oidc';
 import { tokenInterceptor } from './auth/token.interceptor';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { DATE_PIPE_DEFAULT_OPTIONS } from '@angular/common';
+import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
 
 const opts = Intl.DateTimeFormat().resolvedOptions();
 const timeZone = opts.timeZone;
@@ -24,6 +25,10 @@ export const appConfig: ApplicationConfig = {
         timezone: timeZone,
         locale: locale,
       },
-    }
+    },
+    {
+      provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
+      useValue: { appearance: 'outline' },
+    },
   ],
 };

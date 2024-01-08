@@ -1,0 +1,7 @@
+@if (group && controlName) {
+  <mat-form-field [formGroup]="group" class="field">
+    <mat-label>{{ label }}</mat-label>
+    <input matInput [type]="type" [formControlName]="controlName">
+    <mat-error>{{ getErrorMsg() }}</mat-error>
+  </mat-form-field>
+}

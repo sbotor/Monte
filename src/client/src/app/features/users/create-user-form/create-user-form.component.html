@@ -1,6 +1,5 @@
 <form class="form" [formGroup]="formGroup">
-  <mat-form-field>
-    <mat-label>Username</mat-label>
-    <input matInput formControlName="username">
-  </mat-form-field>
+  <app-input-field label="Username" [group]="formGroup" controlName="username"></app-input-field>
+  <app-input-field label="Password" [group]="formGroup" controlName="password" type="password"></app-input-field>
+  <button (click)="onSubmit()" mat-button>Submit</button>
 </form>

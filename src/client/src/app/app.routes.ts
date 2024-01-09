@@ -8,9 +8,33 @@ import { isAdminGuard } from '@auth/is-admin.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'agents', pathMatch: 'full' },
-  { path: 'agents', component: AgentListComponent, canActivate: [loggedInGuard] },
-  { path: 'agents/:id/chart', component: ResourceChartComponent, canActivate: [loggedInGuard] },
-  { path: 'users', component: UserListComponent, canActivate: [loggedInGuard, isAdminGuard] },
+  {
+    path: 'agents',
+    component: AgentListComponent,
+    canActivate: [loggedInGuard],
+  },
+  {
+    path: 'agents/:id/chart',
+    component: ResourceChartComponent,
+    canActivate: [loggedInGuard],
+  },
+
+  {
+    path: 'users',
+    component: UserListComponent,
+    canActivate: [loggedInGuard, isAdminGuard],
+  },
+  {
+    path: 'users/manage',
+    component: UserListComponent,
+    canActivate: [loggedInGuard],
+  },
+  {
+    path: 'users/manage/:id',
+    component: UserListComponent,
+    canActivate: [loggedInGuard, isAdminGuard],
+  },
+
   { path: 'notFound', component: NotFoundComponent },
-  { path: '**', redirectTo: 'notFound' }
+  { path: '**', redirectTo: 'notFound' },
 ];

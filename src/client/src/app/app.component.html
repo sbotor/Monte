@@ -1,14 +1,19 @@
 <mat-toolbar class="toolbar">
   <div class="toolbar-group">
     <span>Monte</span>
-    <button mat-button routerLink="agents" class="nav-button">Agents</button>
-    @if (isAdmin$ | async) {
-    <button mat-button routerLink="users" class="nav-button">Users</button>
-    }
+    <div>
+      <button mat-button routerLink="agents" class="nav-button">Agents</button>
+      @if (isAdmin$ | async) {
+        <button mat-button routerLink="users" class="nav-button">Users</button>
+      }
+    </div>
   </div>
   <div class="toolbar-group">
     @if (user$ | async; as user) {
-      <div>User: {{ user.name }}</div>
+      <button mat-button>
+        <mat-icon>account_circle</mat-icon>
+        {{ user.name }}
+      </button>
       <button mat-button (click)="logout()">Logout</button>
     } @else {
       <app-spinner [diameter]="50">

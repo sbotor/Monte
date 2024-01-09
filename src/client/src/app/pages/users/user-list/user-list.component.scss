@@ -1,20 +1,6 @@
 :host {
   height: 100%;
-}
-
-.container {
-  height: 100%;
-}
-
-.card-list {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 25px;
-}
-
-.user-card {
-  max-width: 250px;
+  min-width: 50%;
 }
 
 .header {

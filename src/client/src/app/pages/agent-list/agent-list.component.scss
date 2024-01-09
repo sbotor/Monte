@@ -1,6 +1,10 @@
+:host {
+  min-width: 80%;
+}
+
 .mat-mdc-row .mat-mdc-cell {
-  border-bottom: 1px solid transparent;
-  border-top: 1px solid transparent;
+  border-bottom: 0.5px solid transparent;
+  border-top: 0.5px solid transparent;
   cursor: pointer;
 }
 

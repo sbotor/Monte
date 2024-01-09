@@ -1,5 +1,5 @@
 <h1 mat-dialog-title>Add user</h1>
 <app-new-user-form mat-dialog-content (submitted)="onSubmit($event)"></app-new-user-form>
-<div mat-dialog-actions [align]="'end'">
-  <button mat-button mat-dialog-close="undefined">Close</button>
+<div mat-dialog-actions align="end">
+  <button mat-button [mat-dialog-close]="undefined">Close</button>
 </div>

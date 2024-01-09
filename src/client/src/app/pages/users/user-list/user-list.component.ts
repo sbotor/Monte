@@ -13,10 +13,11 @@ import {
   switchMap,
   takeUntil,
 } from 'rxjs';
-import { MatCardModule } from '@angular/material/card';
+import { MatListModule } from '@angular/material/list';
 import { MatButtonModule } from '@angular/material/button';
 import { userRoles } from '@auth/roles';
 import { UserDialogsService } from '@features/users/user-dialogs.service';
+import { MatCardModule } from '@angular/material/card';
 
 export interface UserListDetails extends UserDetails {
   isCurrent: boolean;
@@ -28,11 +29,11 @@ export interface UserListDetails extends UserDetails {
   standalone: true,
   imports: [
     CommonModule,
-    MatIconModule,
+    MatListModule,
     SpinnerComponent,
-    MatCardModule,
     MatButtonModule,
     MatIconModule,
+    MatCardModule
   ],
   templateUrl: './user-list.component.html',
   styleUrl: './user-list.component.scss',

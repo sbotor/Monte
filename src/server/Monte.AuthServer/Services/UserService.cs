@@ -12,11 +12,16 @@ public class UserService : IUserService
 {
     private readonly UserManager<AppUser> _userManager;
     private readonly AuthDbContext _dbContext;
+    private readonly IUserContext _userContext;
 
-    public UserService(UserManager<AppUser> userManager, AuthDbContext dbContext)
+    public UserService(
+        UserManager<AppUser> userManager,
+        AuthDbContext dbContext,
+        IUserContext userContext)
     {
         _userManager = userManager;
         _dbContext = dbContext;
+        _userContext = userContext;
     }
 
     public async Task<Result<UserDetails>> CreateUser(CreateUserRequest request, string role)
@@ -79,18 +84,23 @@ public class UserService : IUserService
         {
             return Result.Failure<UserDetails>(ErrorType.BadRequest, "Invalid credentials.");
         }
-
-        var existingUser = await _userManager.FindByNameAsync(username);
-        if (existingUser is not null)
-        {
-            return Result.Failure<UserDetails>(ErrorType.BadRequest, "This username is already taken.");
-        }
-
+        
         var usr = await _userManager.FindByIdAsync(userId);
         if (usr is null)
         {
             return Result.Failure<UserDetails>(ErrorType.NotFound,
                 $"User with the id '{userId}' was not found.");
+        }
+
+        if (usr.Id != await _userContext.GetUserId() && !await _userContext.IsAdmin())
+        {
+            return Result.Failure<UserDetails>(ErrorType.Unauthorized);
+        }
+
+        var existingUser = await _userManager.FindByNameAsync(username);
+        if (existingUser is not null)
+        {
+            return Result.Failure<UserDetails>(ErrorType.BadRequest, "This username is already taken.");
         }
 
         try
@@ -122,6 +132,11 @@ public class UserService : IUserService
         {
             return Result.Failure(ErrorType.NotFound,
                 $"User with the id '{userId}' was not found.");
+        }
+        
+        if (usr.Id != await _userContext.GetUserId() && !await _userContext.IsAdmin())
+        {
+            return Result.Failure<UserDetails>(ErrorType.Unauthorized);
         }
 
         try

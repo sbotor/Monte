@@ -3,31 +3,33 @@
     <h1>Users</h1>
     <button mat-raised-button color="primary" (click)="onNewUserClicked()">New user</button>
   </div>
-  <div class="card-list">
-    @for (user of users; track user) {
-      <mat-card class="user-card">
-        <mat-card-header>
-          <mat-icon mat-card-avatar>{{ user.isAdmin ? 'supervisor_account' : 'person' }}</mat-icon>
-          <mat-card-title>{{ user.name }}</mat-card-title>
-          @if (user.isCurrent) {
-            <mat-card-subtitle>Current</mat-card-subtitle>
+  <mat-card class="card">
+      <mat-card-content>
+        <mat-list>
+          @for (user of users; track user) {
+            <mat-list-item>
+              <mat-icon matListItemIcon>{{ user.isAdmin ? 'supervisor_account' : 'person' }}</mat-icon>
+              <div matListItemTitle>{{ user.name }}</div>
+              @if (user.isCurrent) {
+                <div matListItemLine>Current</div>
+              }
+              <div matListItemMeta>
+                <button mat-button disabled>
+                  <mat-icon>manage_accounts</mat-icon>
+                  Manage
+                </button>
+                @if (!user.isAdmin) {
+                  <button mat-button color="warn" (click)="onDelete(user)">
+                    <mat-icon>person_off</mat-icon>
+                    Remove
+                  </button>
+                }
+              </div>
+            </mat-list-item>
           }
-        </mat-card-header>
-        <mat-card-actions>
-          <button mat-button>
-            <mat-icon>manage_accounts</mat-icon>
-            Manage
-          </button>
-          @if (!user.isAdmin) {
-            <button mat-button color="warn" (click)="onDelete(user)">
-              <mat-icon>delete</mat-icon>
-              Remove
-            </button>
-          }
-        </mat-card-actions>
-      </mat-card>
-    }
-  </div>
+        </mat-list>
+      </mat-card-content>
+    </mat-card>
 } @else {
   <app-spinner></app-spinner>
 }

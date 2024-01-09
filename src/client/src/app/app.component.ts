@@ -7,26 +7,30 @@ import { RouterLink, RouterOutlet } from '@angular/router';
 import { AuthService } from '@auth/auth.service';
 import { SpinnerComponent } from '@components/spinner';
 import { map } from 'rxjs';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule,
+  imports: [
+    CommonModule,
     MatSidenavModule,
     RouterOutlet,
     SpinnerComponent,
     MatButtonModule,
     RouterLink,
-    MatToolbarModule,],
+    MatToolbarModule,
+    MatIconModule,
+  ],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.scss'
+  styleUrl: './app.component.scss',
 })
 export class AppComponent {
   title = 'monte';
 
   public readonly loggedIn$ = this.auth.loginSuccessful$;
   public readonly user$ = this.auth.user$;
-  public readonly isAdmin$ = this.auth.user$.pipe(map(x => x.admin));
+  public readonly isAdmin$ = this.auth.user$.pipe(map((x) => x.admin));
 
   constructor(private readonly auth: AuthService) {
     this.auth.configure();

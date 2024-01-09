@@ -36,6 +36,7 @@ internal static class Setup
         
         services.AddHostedService<AuthSetupWorker>();
 
+        services.AddScoped<IUserContext, UserContext>();
         services.AddScoped<IUserService, UserService>();
     }
 

@@ -2,10 +2,17 @@ import { Injectable } from '@angular/core';
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import passwordValidator from './validators/passwordValidator';
 
+export interface PasswordConfirmationForm {
+  password: AbstractControl<string>;
+  passwordConfirmation: AbstractControl<string>;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class InputValidationService {
+  private readonly errorKeys = ['required', 'passConfirmation'];
+
   public required<T = any>(
     control: AbstractControl<T>
   ): ValidationErrors | null {
@@ -26,6 +33,29 @@ export class InputValidationService {
     };
   }
 
+  public verifyPasswordConfirmation(
+    form: PasswordConfirmationForm,
+    password?: string,
+    passwordConfirmation?: string
+  ) {
+    const passValue = password || form.password.value;
+    const confValue = passwordConfirmation || form.passwordConfirmation.value;
+
+    if (passValue === confValue) {
+      return true;
+    }
+
+    let errors = form.passwordConfirmation.errors;
+    if (!errors) {
+      errors = {};
+    }
+    errors['passConfirmation'] = 'Passwords do not match';
+
+    form.passwordConfirmation.setErrors(errors);
+
+    return false;
+  }
+
   public getFirstError(
     errors: ValidationErrors | null
   ): { key: string; value: string } | null {
@@ -33,11 +63,13 @@ export class InputValidationService {
       return null;
     }
 
-    if ('required' in errors) {
-      return {
-        key: 'required',
-        value: errors['required'] as string,
-      };
+    for (const key in this.errorKeys) {
+      if (errors.hasOwnProperty(key)) {
+        return {
+          key,
+          value: errors[key] as string,
+        };
+      }
     }
 
     const firstKey = Object.keys(errors)[0];

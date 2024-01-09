@@ -4,6 +4,8 @@ import {
   ConfirmationDialogComponent,
   ConfirmationDialogData,
 } from '@components/confirmation-dialog/confirmation-dialog.component';
+import { NewUserDialogComponent } from './new-user-dialog/new-user-dialog.component';
+import { NewUserFormValues } from './new-user-form/new-user-form.component';
 
 @Injectable({
   providedIn: 'root',
@@ -22,6 +24,14 @@ export class UserDialogsService {
       .open<ConfirmationDialogComponent, ConfirmationDialogData, boolean>(
         ConfirmationDialogComponent,
         { data }
+      )
+      .afterClosed();
+  }
+
+  public openNewUserDialog() {
+    return this.dialog
+      .open<NewUserDialogComponent, void, NewUserFormValues>(
+        NewUserDialogComponent
       )
       .afterClosed();
   }

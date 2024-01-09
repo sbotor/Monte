@@ -31,7 +31,6 @@ export class ConfirmationDialogComponent {
   public readonly content: SafeHtml | null;
 
   constructor(
-    private readonly dialogRef: MatDialogRef<ConfirmationDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public readonly data: ConfirmationDialogData,
     sanitizer: DomSanitizer
   ) {

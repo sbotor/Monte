@@ -4,6 +4,7 @@ using Monte.AuthServer.Data;
 using Monte.AuthServer.Features.Users.Extensions;
 using Monte.AuthServer.Features.Users.Models;
 using Monte.AuthServer.Helpers;
+using Monte.AuthServer.Models;
 
 namespace Monte.AuthServer.Services;
 
@@ -25,7 +26,7 @@ public class UserService : IUserService
             if ((await _userManager.GetUsersInRoleAsync(AuthConsts.Roles.MonteAdmin)).Any())
             {
                 return Result.Failure<UserDetails>(
-                    Result.ErrorType.BadRequest,
+                    ErrorType.BadRequest,
                     "Couldn't create admin, because an admin already exists in the system.");
             }
         }
@@ -33,13 +34,13 @@ public class UserService : IUserService
         if (string.IsNullOrEmpty(request.Username)
             || string.IsNullOrEmpty(request.Password))
         {
-            return Result.Failure<UserDetails>(Result.ErrorType.BadRequest, "Invalid credentials.");
+            return Result.Failure<UserDetails>(ErrorType.BadRequest, "Invalid credentials.");
         }
 
         var existingUser = await _userManager.FindByNameAsync(request.Username);
         if (existingUser is not null)
         {
-            return Result.Failure<UserDetails>(Result.ErrorType.BadRequest, "User already exists.");
+            return Result.Failure<UserDetails>(ErrorType.BadRequest, "User already exists.");
         }
 
         var user = new AppUser { UserName = request.Username };
@@ -47,7 +48,7 @@ public class UserService : IUserService
         var result = await _userManager.CreateAsync(user);
         if (!result.Succeeded)
         {
-            return Result.Failure<UserDetails>(Result.ErrorType.BadRequest,
+            return Result.Failure<UserDetails>(ErrorType.BadRequest,
                 result.Errors.ToErrorDictionary());
         }
 
@@ -59,7 +60,7 @@ public class UserService : IUserService
         catch (IdentityErrorException e)
         {
             await _userManager.DeleteAsync(user);
-            return Result.Failure<UserDetails>(Result.ErrorType.BadRequest, e.Errors);
+            return Result.Failure<UserDetails>(ErrorType.BadRequest, e.Errors);
         }
         catch
         {
@@ -72,33 +73,33 @@ public class UserService : IUserService
         return Result.Success(response);
     }
 
-    public async Task<Result<UserDetails>> ChangeUsername(ChangeUsernameRequest request)
+    public async Task<Result<UserDetails>> ChangeUsername(string userId, string username)
     {
-        if (string.IsNullOrEmpty(request.NewUsername) || string.IsNullOrEmpty(request.UserId))
+        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(userId))
         {
-            return Result.Failure<UserDetails>(Result.ErrorType.BadRequest, "Invalid credentials.");
+            return Result.Failure<UserDetails>(ErrorType.BadRequest, "Invalid credentials.");
         }
 
-        var existingUser = await _userManager.FindByNameAsync(request.NewUsername);
+        var existingUser = await _userManager.FindByNameAsync(username);
         if (existingUser is not null)
         {
-            return Result.Failure<UserDetails>(Result.ErrorType.BadRequest, "This username is already taken.");
+            return Result.Failure<UserDetails>(ErrorType.BadRequest, "This username is already taken.");
         }
 
-        var usr = await _userManager.FindByIdAsync(request.UserId);
-        if (usr == null)
+        var usr = await _userManager.FindByIdAsync(userId);
+        if (usr is null)
         {
-            return Result.Failure<UserDetails>(Result.ErrorType.NotFound,
-                $"User with the id '{request.UserId}' was not found.");
+            return Result.Failure<UserDetails>(ErrorType.NotFound,
+                $"User with the id '{userId}' was not found.");
         }
 
         try
         {
-            ThrowIfError(await _userManager.SetUserNameAsync(usr, request.NewUsername));
+            ThrowIfError(await _userManager.SetUserNameAsync(usr, username));
         }
         catch (IdentityErrorException e)
         {
-            return Result.Failure<UserDetails>(Result.ErrorType.BadRequest, e.Errors);
+            return Result.Failure<UserDetails>(ErrorType.BadRequest, e.Errors);
         }
 
         var response = new UserDetails { Id = usr.Id, Name = usr.UserName ?? "-" };
@@ -106,21 +107,21 @@ public class UserService : IUserService
         return Result.Success(response);
     }
 
-    public async Task<Result> ChangePassword(ChangePasswordRequest request)
+    public async Task<Result> ChangePassword(string userId, ChangePasswordRequest request)
     {
-        if (string.IsNullOrEmpty(request.UserId) ||
+        if (string.IsNullOrEmpty(userId) ||
             string.IsNullOrEmpty(request.OldPassword) ||
             string.IsNullOrEmpty(request.NewPassword))
         {
-            return Result.Failure(Result.ErrorType.BadRequest,
+            return Result.Failure(ErrorType.BadRequest,
                 "Invalid credentials.");
         }
 
-        var usr = await _userManager.FindByIdAsync(request.UserId);
+        var usr = await _userManager.FindByIdAsync(userId);
         if (usr == null)
         {
-            return Result.Failure(Result.ErrorType.NotFound,
-                $"User with the id '{request.UserId}' was not found.");
+            return Result.Failure(ErrorType.NotFound,
+                $"User with the id '{userId}' was not found.");
         }
 
         try
@@ -129,7 +130,7 @@ public class UserService : IUserService
         }
         catch (IdentityErrorException e)
         {
-            return Result.Failure(Result.ErrorType.BadRequest, e.Errors.ToString());
+            return Result.Failure(ErrorType.BadRequest, e.Errors.ToString());
         }
 
         return Result.Success();
@@ -156,7 +157,7 @@ public class UserService : IUserService
         var existingUser = await _userManager.FindByIdAsync(userId);
         if (existingUser == null)
         {
-            return Result.Failure(Result.ErrorType.NotFound, $"User with the id '{userId}' was not found.");
+            return Result.Failure(ErrorType.NotFound, $"User with the id '{userId}' was not found.");
         }
 
         await _userManager.DeleteAsync(existingUser);
@@ -185,68 +186,11 @@ public class UserService : IUserService
     }
 }
 
-public class Result
-{
-    private static readonly Result SuccessfulResult = new();
-
-    public string? ErrorMessage { get; }
-    public ErrorType ErrType { get; }
-
-    protected Result(string? error, ErrorType type)
-    {
-        ErrorMessage = error;
-        ErrType = type;
-    }
-
-    protected Result()
-    {
-        ErrorMessage = string.Empty;
-        ErrType = ErrorType.None;
-    }
-
-    public enum ErrorType
-    {
-        None, NotFound, BadRequest
-    }
-
-    public static Result Success()
-        => SuccessfulResult;
-
-    public static Result Failure(ErrorType error, string? message = null)
-        => new(message, error);
-
-    public static Result<T> Success<T>(T? value)
-        => Result<T>.Success(value);
-
-    public static Result<T> Failure<T>(ErrorType error, string? message = null)
-        => Result<T>.Failure(error, message);
-}
-
-public class Result<T> : Result
-{
-    public T? Object { get; }
-
-    protected Result(T? obj)
-    {
-        Object = obj;
-    }
-
-    protected Result(string? error, ErrorType type) : base(error, type)
-    {
-    }
-
-    public static Result<T> Success(T? value)
-        => new(value);
-
-    public static new Result<T> Failure(ErrorType error, string? message = null)
-        => new(message, error);
-}
-
 public interface IUserService
 {
     public Task<Result<UserDetails>> CreateUser(CreateUserRequest request, string role);
-    public Task<Result<UserDetails>> ChangeUsername(ChangeUsernameRequest request);
-    public Task<Result> ChangePassword(ChangePasswordRequest request);
+    public Task<Result<UserDetails>> ChangeUsername(string userId, string username);
+    public Task<Result> ChangePassword(string userId, ChangePasswordRequest request);
     public Task<Result<UserDetails[]>> GetUsers(CancellationToken cancellationToken = default);
     public Task<Result> DeleteUser(string userId);
 }

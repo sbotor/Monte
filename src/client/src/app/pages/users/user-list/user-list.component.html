@@ -1,5 +1,8 @@
 @if (users$ | async; as users) {
-  <h1>Users</h1>
+  <div class="header">
+    <h1>Users</h1>
+    <button mat-raised-button color="primary" (click)="onNewUserClicked()">New user</button>
+  </div>
   <div class="card-list">
     @for (user of users; track user) {
       <mat-card class="user-card">
@@ -15,7 +18,7 @@
             <mat-icon>manage_accounts</mat-icon>
             Manage
           </button>
-          @if (user.isAdmin) {
+          @if (!user.isAdmin) {
             <button mat-button color="warn" (click)="onDelete(user)">
               <mat-icon>delete</mat-icon>
               Remove

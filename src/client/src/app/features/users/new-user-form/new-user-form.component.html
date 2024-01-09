@@ -1,0 +1,8 @@
+<form class="form" [formGroup]="formGroup" (ngSubmit)="onSubmit()">
+  <app-input-field label="Username" [group]="formGroup" controlName="username"></app-input-field>
+  <app-input-field label="Password" [group]="formGroup" controlName="password" type="password"></app-input-field>
+  <app-input-field label="Confirm password" [group]="formGroup" controlName="passwordConfirmation"
+    type="password">
+  </app-input-field>
+  <button mat-raised-button color="primary" [disabled]="formGroup.invalid">Add</button>
+</form>

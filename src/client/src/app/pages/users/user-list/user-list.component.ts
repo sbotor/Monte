@@ -10,8 +10,8 @@ import {
   combineLatest,
   filter,
   map,
+  switchMap,
   takeUntil,
-  tap,
 } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -69,9 +69,19 @@ export class UserListComponent implements OnInit, OnDestroy {
       .openDeleteConfirmationDialog(user.name)
       .pipe(
         takeUntil(this.destroyed$),
-        tap(x => console.log(x)),
         filter((x) => x === true),
-        //switchMap((_) => this.api.deleteUser(user.id))
+        switchMap((_) => this.api.deleteUser(user.id))
+      )
+      .subscribe(() => this.fetchUsers());
+  }
+
+  public onNewUserClicked() {
+    this.dialog
+      .openNewUserDialog()
+      .pipe(
+        takeUntil(this.destroyed$),
+        filter((x) => x !== undefined),
+        switchMap((x) => this.api.createUser(x!))
       )
       .subscribe(() => this.fetchUsers());
   }
@@ -104,10 +114,6 @@ export class UserListComponent implements OnInit, OnDestroy {
         isAdmin: y.role === userRoles.admin,
       };
     });
-
-    for (let i = 0; i < 10; i++) {
-      mapped.push(mapped[0]);
-    }
 
     return mapped;
   }

@@ -46,7 +46,6 @@ export const passwordValidator = (
 
   for (let i = 0; i < value.length; i++) {
     const c = value.charCodeAt(i);
-    console.log(c);
 
     if (isUppercase(c)) {
       errors.passUppercase = null;

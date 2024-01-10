@@ -10,11 +10,7 @@ from logger import configure_logger
 CONFIG_FILE = './config.yaml'
 ENVIRONMENT = 'development' # production, development
 
-#LOGGING_LEVEL = logging.DEBUG
-#LOGGING_FORMAT = '%(asctime)s %(levelname)s %(message)s'
-
 async def main():
-    #logging.basicConfig(level=LOGGING_LEVEL, format=LOGGING_FORMAT)
     configure_logger(CONFIG_FILE)
     logger = logging.getLogger()
 
@@ -28,12 +24,13 @@ async def main():
             await run(api_client, config)
 
 async def run(api: MonteClient, config):
+    logger = logging.getLogger()
     while True:
         try:
             await api.push_report()
             await asyncio.sleep(config.reporting_period)
         except Exception as e:
-            logging.error(f'Exception occurred.', exc_info=e)
+            logger.error(f'Exception occurred.', exc_info=e)
     
 
 if __name__ == '__main__':

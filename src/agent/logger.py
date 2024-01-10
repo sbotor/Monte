@@ -32,14 +32,12 @@ def configure_logger(config_file: str):
         filename= f"{path}/log",
         backupCount=30,
         utc=True,
-        when='S' 
+        when='midnight'
           )
     fileHandler.setFormatter(formatter)
-    fileHandler.setLevel(logLevel)
     rootLogger.addHandler(fileHandler)
     
     consoleHandler = logging.StreamHandler()
     consoleHandler.setFormatter(formatter)
-    consoleHandler.setLevel(logLevel)
     rootLogger.addHandler(consoleHandler)   
 

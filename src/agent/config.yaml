@@ -13,3 +13,7 @@ environments:
   development:
     auth_url: 'https://localhost:7049'
     api_url: 'https://localhost:7048'
+logger:
+  #Log levels: DEBUG, INFO, WARNING, ERROR, CRITICAL, NONE
+  log_level: 'DEBUG'
+  logs_path: './logs'

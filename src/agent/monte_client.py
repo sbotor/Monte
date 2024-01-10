@@ -153,7 +153,7 @@ class MonteClient:
 
         body = monitoring.get_system_resources(self._config.reporting_period)
         body['metricsKey'] = self._metrics_key
-
+        
         key = await self._execute('POST', 'agentMetrics', json=body)
 
         if not key:

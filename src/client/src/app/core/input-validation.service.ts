@@ -17,7 +17,6 @@ export class InputValidationService {
     control: AbstractControl<T>
   ): ValidationErrors | null {
     const empty = !control.value;
-
     return empty ? { required: 'This field is required' } : null;
   }
 
@@ -26,32 +25,30 @@ export class InputValidationService {
   }
 
   public maxLength(length: number): ValidatorFn {
-    return (control: AbstractControl<string>): ValidationErrors | null => {
-      const isValid = !control.value || control.value.length <= length;
-
-      return isValid ? null : { maxLength: `Maximum length is ${length}` };
-    };
+    return (control: AbstractControl<string>) =>
+      InputValidationService.validateLength(control, undefined, length);
   }
 
-  public verifyPasswordConfirmation(
-    form: PasswordConfirmationForm,
-    password?: string,
-    passwordConfirmation?: string
-  ) {
-    const passValue = password || form.password.value;
-    const confValue = passwordConfirmation || form.passwordConfirmation.value;
+  public username(control: AbstractControl<string>): ValidationErrors | null {
+    const res = InputValidationService.validateLength(control, 3, 50);
+    return res;
+  }
 
-    if (passValue === confValue) {
+  public validatePasswordConfirmation(
+    password: string,
+    confirmationControl: AbstractControl<string>
+  ) {
+    if (password === confirmationControl.value) {
       return true;
     }
 
-    let errors = form.passwordConfirmation.errors;
+    let errors = confirmationControl.errors;
     if (!errors) {
       errors = {};
     }
     errors['passConfirmation'] = 'Passwords do not match';
 
-    form.passwordConfirmation.setErrors(errors);
+    confirmationControl.setErrors(errors);
 
     return false;
   }
@@ -74,5 +71,27 @@ export class InputValidationService {
 
     const firstKey = Object.keys(errors)[0];
     return { key: firstKey, value: errors[firstKey] as string };
+  }
+
+  private static validateLength(
+    control: AbstractControl<string>,
+    min?: number,
+    max?: number
+  ): ValidationErrors | null {
+    const value = control.value;
+
+    if (value === undefined || value === null) {
+      return null;
+    }
+
+    if (min !== undefined && value.length < min) {
+      return { minLength: `Minimum length is ${min}` };
+    }
+
+    if (max !== undefined && value.length > max) {
+      return { maxLength: `Maximum length is ${max}` };
+    }
+
+    return null;
   }
 }

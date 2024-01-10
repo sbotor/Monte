@@ -1,0 +1,9 @@
+<form #form="ngForm" class="form" [formGroup]="formGroup" (ngSubmit)="onSubmit()">
+  <app-input-field label="New username" [group]="formGroup" controlName="username">
+  </app-input-field>
+  @if (isLoading) {
+    <app-spinner></app-spinner>
+  } @else {
+    <button mat-raised-button color="primary" [disabled]="formGroup.invalid">Change</button>
+  }
+</form>

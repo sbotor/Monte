@@ -14,10 +14,10 @@
                 <div matListItemLine>Current</div>
               }
               <div matListItemMeta>
-                <button mat-button disabled>
+                <a mat-button [routerLink]="['manage', user.id]">
                   <mat-icon>manage_accounts</mat-icon>
                   Manage
-                </button>
+                </a>
                 @if (!user.isAdmin) {
                   <button mat-button color="warn" (click)="onDelete(user)">
                     <mat-icon>person_off</mat-icon>

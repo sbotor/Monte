@@ -18,6 +18,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { userRoles } from '@auth/roles';
 import { UserDialogsService } from '@features/users/user-dialogs.service';
 import { MatCardModule } from '@angular/material/card';
+import { RouterLink } from '@angular/router';
 
 export interface UserListDetails extends UserDetails {
   isCurrent: boolean;
@@ -33,7 +34,8 @@ export interface UserListDetails extends UserDetails {
     SpinnerComponent,
     MatButtonModule,
     MatIconModule,
-    MatCardModule
+    MatCardModule,
+    RouterLink
   ],
   templateUrl: './user-list.component.html',
   styleUrl: './user-list.component.scss',

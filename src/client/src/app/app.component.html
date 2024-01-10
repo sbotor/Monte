@@ -10,7 +10,7 @@
   </div>
   <div class="toolbar-group">
     @if (user$ | async; as user) {
-      <button mat-button>
+      <button mat-button routerLink="/users/manage">
         <mat-icon>account_circle</mat-icon>
         {{ user.name }}
       </button>

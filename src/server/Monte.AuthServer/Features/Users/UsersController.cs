@@ -53,6 +53,14 @@ public class UsersController : ControllerBase
         var result = await _userService.GetUsers();
         return result.ToActionResult();
     }
+    
+    [HttpGet("{userId}")]
+    [Authorize(Roles = AuthConsts.RoleGroups.AllUsers)]
+    public async Task<IActionResult> GetUser(string userId)
+    {
+        var result = await _userService.GetUser(userId);
+        return result.ToActionResult();
+    }
 
     [HttpDelete("{userId}")]
     [Authorize(Roles = AuthConsts.Roles.MonteAdmin)]

@@ -94,7 +94,7 @@ public class UserService : IUserService
 
         if (usr.Id != await _userContext.GetUserId() && !await _userContext.IsAdmin())
         {
-            return Result.Failure<UserDetails>(ErrorType.Unauthorized);
+            return Result.Failure<UserDetails>(ErrorType.Forbidden);
         }
 
         var existingUser = await _userManager.FindByNameAsync(username);
@@ -136,7 +136,7 @@ public class UserService : IUserService
         
         if (usr.Id != await _userContext.GetUserId() && !await _userContext.IsAdmin())
         {
-            return Result.Failure<UserDetails>(ErrorType.Unauthorized);
+            return Result.Failure<UserDetails>(ErrorType.Forbidden);
         }
 
         try
@@ -160,11 +160,42 @@ public class UserService : IUserService
             {
                 Id = x.Id,
                 Name = x.UserName ?? "-",
-                Role = x.UserRoles.FirstOrDefault()!.Role.Name!
+                Role = x.UserRoles.First().Role.Name!
             })
             .ToArrayAsync(cancellationToken);
 
         return Result.Success(users);
+    }
+
+    public async Task<Result<UserDetails>> GetUser(string id, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrEmpty(id))
+        {
+            return Result.Failure<UserDetails>(ErrorType.BadRequest);
+        }
+
+        var user = await _dbContext.Users.AsNoTracking()
+            .Include(x => x.UserRoles).ThenInclude(x => x.Role)
+            .Select(x => new UserDetails
+            {
+                Id = x.Id,
+                Name = x.UserName!,
+                Role = x.UserRoles.First().Role.Name!
+            })
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+
+        if (user is null)
+        {
+            return Result.Failure<UserDetails>(ErrorType.NotFound);
+        }
+
+        if (user.Id != await _userContext.GetUserId(cancellationToken)
+            && !await _userContext.IsAdmin(cancellationToken))
+        {
+            return Result.Failure<UserDetails>(ErrorType.Forbidden);
+        }
+
+        return Result.Success(user);
     }
 
     public async Task<Result> DeleteUser(string userId)
@@ -208,4 +239,5 @@ public interface IUserService
     public Task<Result> ChangePassword(string userId, ChangePasswordRequest request);
     public Task<Result<UserDetails[]>> GetUsers(CancellationToken cancellationToken = default);
     public Task<Result> DeleteUser(string userId);
+    Task<Result<UserDetails>> GetUser(string id, CancellationToken cancellationToken = default);
 }

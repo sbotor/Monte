@@ -31,7 +31,7 @@ export class NewUserFormComponent implements OnDestroy {
   private readonly destroyed$ = new Subject<void>();
 
   public readonly formGroup = this.fb.nonNullable.group({
-    username: ['', [this.validators.required, this.validators.maxLength(50)]],
+    username: ['', [this.validators.required, this.validators.username]],
     password: [
       '',
       [
@@ -46,7 +46,8 @@ export class NewUserFormComponent implements OnDestroy {
     ],
   });
 
-  @Output('submitted') public submitEvent = new EventEmitter<NewUserFormValues>();
+  @Output('submitted') public submitEvent =
+    new EventEmitter<NewUserFormValues>();
 
   constructor(
     private readonly fb: FormBuilder,
@@ -63,13 +64,13 @@ export class NewUserFormComponent implements OnDestroy {
             p.passwordConfirmation === c.passwordConfirmation
         )
       )
-      .subscribe((x) =>
-        this.validators.verifyPasswordConfirmation(
-          this.formGroup.controls,
-          x.password,
-          x.passwordConfirmation
-        )
-      );
+      .subscribe((_) => {
+        const controls = this.formGroup.controls;
+        this.validators.validatePasswordConfirmation(
+          controls.password.value,
+          controls.passwordConfirmation
+        );
+      });
   }
 
   ngOnDestroy(): void {
@@ -78,16 +79,19 @@ export class NewUserFormComponent implements OnDestroy {
   }
 
   public onSubmit() {
+    const controls = this.formGroup.controls;
     if (
       !(
         this.formGroup.valid &&
-        this.validators.verifyPasswordConfirmation(this.formGroup.controls)
+        this.validators.validatePasswordConfirmation(
+          controls.password.value,
+          controls.passwordConfirmation
+        )
       )
     ) {
       this.submitEvent.emit(undefined);
     }
 
-    const controls = this.formGroup.controls;
     this.submitEvent.emit({
       username: controls.username.value,
       password: controls.password.value,

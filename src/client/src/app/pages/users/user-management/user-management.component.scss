@@ -1,0 +1,20 @@
+@use 'mixins' as mix;
+
+:host {
+  @include mix.flex-col(10px);
+}
+
+.card-header {
+  margin-bottom: 20px;
+}
+
+.info-message {
+  margin-top: 20px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.text-error {
+  @include mix.color-warn;
+}

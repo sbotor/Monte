@@ -1,19 +1,27 @@
 <mat-toolbar class="toolbar">
   <div class="toolbar-group">
     <span>Monte</span>
-    <button mat-button routerLink="agents" class="nav-button">Agents</button>
+    <div>
+      <button mat-button routerLink="agents" class="nav-button">Agents</button>
+      @if (isAdmin$ | async) {
+        <button mat-button routerLink="users" class="nav-button">Users</button>
+      }
+    </div>
   </div>
-  <div *ngIf="user$ | async; let user; else spinner" class="toolbar-group">
-    <div>User: {{ user.name }}</div>
-    <button mat-button (click)="logout()">Logout</button>
+  <div class="toolbar-group">
+    @if (user$ | async; as user) {
+      <button mat-button routerLink="/users/manage">
+        <mat-icon>account_circle</mat-icon>
+        {{ user.name }}
+      </button>
+      <button mat-button (click)="logout()">Logout</button>
+    } @else {
+      <app-spinner [diameter]="50">
+      </app-spinner>
+    }
   </div>
 </mat-toolbar>
 
 <div class="content">
   <router-outlet></router-outlet>
 </div>
-
-<ng-template #spinner>
-  <app-spinner [diameter]="50">
-  </app-spinner>
-</ng-template>

@@ -1,0 +1,5 @@
+@use 'mixins' as mix;
+
+.form {
+  @include mix.vertical-form;
+}

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Monte.AuthServer.Configuration;
+using Monte.AuthServer.Data;
 using Monte.AuthServer.Helpers;
 using OpenIddict.Abstractions;
 using static OpenIddict.Abstractions.OpenIddictConstants;
@@ -15,11 +16,11 @@ namespace Monte.AuthServer.Features.Auth;
 [Route("connect")]
 public class AuthController : ControllerBase
 {
-    private readonly SignInManager<IdentityUser> _signInManager;
+    private readonly SignInManager<AppUser> _signInManager;
     private readonly AuthSettings _settings;
 
     public AuthController(
-        SignInManager<IdentityUser> signInManager,
+        SignInManager<AppUser> signInManager,
         IOptions<AuthSettings> options)
     {
         _signInManager = signInManager;

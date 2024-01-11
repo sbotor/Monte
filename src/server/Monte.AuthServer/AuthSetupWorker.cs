@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Monte.AuthServer.Configuration;
+using Monte.AuthServer.Data;
 using Monte.AuthServer.Extensions;
 using Monte.AuthServer.Helpers;
 using OpenIddict.Abstractions;
@@ -29,7 +30,7 @@ public class AuthSetupWorker : IHostedService
 
         await PopulateScopes(scope, cancellationToken);
         await PopulateApps(scope, authSettings, appSettings, cancellationToken);
-        await PopulateRoles(scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>());
+        await PopulateRoles(scope.ServiceProvider.GetRequiredService<RoleManager<AppRole>>());
     }
 
     private static async Task PopulateScopes(IServiceScope scope, CancellationToken cancellationToken)
@@ -56,7 +57,7 @@ public class AuthSetupWorker : IHostedService
         }
     }
 
-    private static async Task PopulateRoles(RoleManager<IdentityRole> manager)
+    private static async Task PopulateRoles(RoleManager<AppRole> manager)
     {
         var admin = await manager.FindByNameAsync(AuthConsts.Roles.MonteAdmin);
         var user = await manager.FindByNameAsync(AuthConsts.Roles.MonteUser);

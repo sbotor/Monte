@@ -1,0 +1,35 @@
+@if (users$ | async; as users) {
+  <div class="header">
+    <h1>Users</h1>
+    <button mat-raised-button color="primary" (click)="onNewUserClicked()">New user</button>
+  </div>
+  <mat-card class="card">
+      <mat-card-content>
+        <mat-list>
+          @for (user of users; track user) {
+            <mat-list-item>
+              <mat-icon matListItemIcon>{{ user.isAdmin ? 'supervisor_account' : 'person' }}</mat-icon>
+              <div matListItemTitle>{{ user.name }}</div>
+              @if (user.isCurrent) {
+                <div matListItemLine>Current</div>
+              }
+              <div matListItemMeta>
+                <a mat-button [routerLink]="['manage', user.id]">
+                  <mat-icon>manage_accounts</mat-icon>
+                  Manage
+                </a>
+                @if (!user.isAdmin) {
+                  <button mat-button color="warn" (click)="onDelete(user)">
+                    <mat-icon>person_off</mat-icon>
+                    Remove
+                  </button>
+                }
+              </div>
+            </mat-list-item>
+          }
+        </mat-list>
+      </mat-card-content>
+    </mat-card>
+} @else {
+  <app-spinner></app-spinner>
+}

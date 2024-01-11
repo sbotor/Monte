@@ -1,28 +1,32 @@
-<mat-drawer-container *ngIf="data$ | async; let data; else spinner" class="container">
-  <mat-drawer class="drawer" mode="side" opened>
-    <div class="drawer-content">
-      <h1>{{ data.agent.displayName }}</h1>
-      <mat-divider class="divider"></mat-divider>
-      <app-chart-date-picker></app-chart-date-picker>
-      <app-chart-type-select></app-chart-type-select>
-      <app-aggregation-type-select></app-aggregation-type-select>
-      <app-cpu-core-select *ngIf="data.params.chartType === 'cpu'"
-        [cpuCoreCount]="data.agent.cpuLogicalCount"></app-cpu-core-select>
-      <app-memory-type-toggle *ngIf="data.params.chartType === 'memory'"></app-memory-type-toggle>
-    </div>
-  </mat-drawer>
-  <mat-drawer-content>
-    <mat-card *ngIf="!isLoading(); else spinner" class="chart-card">
-      <mat-card-header>
-        <mat-card-title>{{ getChartTitle(data.params) }}</mat-card-title>
-        <mat-card-subtitle *ngIf="getChartSubtitle(data.params); let subtitle">{{ subtitle }}</mat-card-subtitle>
-      </mat-card-header>
-      <apx-chart class="chart" [series]="chartOptions().series" [chart]="chartOptions().chart"
-        [xaxis]="chartOptions().xAxis" [theme]="chartOptions().theme" [yaxis]="chartOptions().yAxis"></apx-chart>
-    </mat-card>
-  </mat-drawer-content>
-</mat-drawer-container>
-
-<ng-template #spinner>
+@if (data$ | async; as data) {
+  <mat-drawer-container class="container">
+    <mat-drawer class="drawer" mode="side" opened>
+      <div class="drawer-content">
+        <h1>{{ data.agent.displayName }}</h1>
+        <mat-divider class="divider"></mat-divider>
+        <app-chart-date-picker></app-chart-date-picker>
+        <app-chart-type-select></app-chart-type-select>
+        <app-aggregation-type-select></app-aggregation-type-select>
+        <app-cpu-core-select *ngIf="data.params.chartType === 'cpu'"
+          [cpuCoreCount]="data.agent.cpuLogicalCount"></app-cpu-core-select>
+        <app-memory-type-toggle *ngIf="data.params.chartType === 'memory'"></app-memory-type-toggle>
+      </div>
+    </mat-drawer>
+    <mat-drawer-content>
+      @if (!isLoading()) {
+        <mat-card class="chart-card">
+          <mat-card-header>
+            <mat-card-title>{{ getChartTitle(data.params) }}</mat-card-title>
+            <mat-card-subtitle *ngIf="getChartSubtitle(data.params); let subtitle">{{ subtitle }}</mat-card-subtitle>
+          </mat-card-header>
+          <apx-chart class="chart" [series]="chartOptions().series" [chart]="chartOptions().chart"
+            [xaxis]="chartOptions().xAxis" [theme]="chartOptions().theme" [yaxis]="chartOptions().yAxis"></apx-chart>
+        </mat-card>
+      } @else {
+        <app-spinner></app-spinner>
+      }
+    </mat-drawer-content>
+  </mat-drawer-container>
+} @else {
   <app-spinner></app-spinner>
-</ng-template>
+}

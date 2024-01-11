@@ -3,14 +3,15 @@ import { inject } from '@angular/core';
 import { ApiService } from '@core/api.service';
 import { AuthService } from './auth.service';
 import { of, switchMap } from 'rxjs';
+import { UsersService } from '@features/users/users.service';
 
 export const tokenInterceptor: HttpInterceptorFn = (req, next) => {
   const api = inject(ApiService);
+  const userApi = inject(UsersService);
 
   const url = req.url.toLowerCase();
-  const apiUrl = api.baseUrl.toLowerCase();
 
-  if (!url.startsWith(apiUrl)) {
+  if (!url.startsWith(api.baseUrl) && !url.startsWith(userApi._baseUrl)) {
     return next(req);
   }
 

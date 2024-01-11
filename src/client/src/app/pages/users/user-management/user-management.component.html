@@ -1,0 +1,28 @@
+@if (user$ | async; as user) {
+  <mat-card>
+    <mat-card-header class="card-header">
+      <mat-card-title>
+        <mat-icon>{{ user.isAdmin ? 'supervisor_account' : 'person' }}</mat-icon>
+        {{ user.name }}
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <app-change-username-form (submitted)="onUsernameChange($event)"
+        [isLoading]="usernameStatus().success === undefined"></app-change-username-form>
+      <div class="info-message" [ngClass]="usernameStatus().cssClass">{{ usernameStatus().msg }}</div>
+    </mat-card-content>
+  </mat-card>
+  <mat-card>
+    <mat-card-header class="card-header">
+      <mat-card-title>Change password</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <app-change-password-form (submitted)="onPasswordChange($event)"
+        [isLoading]="passwordStatus().success === undefined">
+      </app-change-password-form>
+      <div class="info-message" [ngClass]="passwordStatus().cssClass">
+        {{ passwordStatus().msg }}
+      </div>
+    </mat-card-content>
+  </mat-card>
+}

@@ -1,6 +1,10 @@
-<mat-form-field *ngIf="chartType$ | async; let chartType">
-  <mat-label>Chart type</mat-label>
-  <mat-select (selectionChange)="onChanges($event)" [value]="chartType">
-    <mat-option *ngFor="let opt of options" [value]="opt.value">{{ opt.label }}</mat-option>
-  </mat-select>
-</mat-form-field>
+@if (chartType$ | async; as chartType) {
+  <mat-form-field>
+    <mat-label>Chart type</mat-label>
+    <mat-select (selectionChange)="onChanges($event)" [value]="chartType">
+      @for (opt of options; track opt) {
+        <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+}

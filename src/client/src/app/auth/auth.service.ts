@@ -9,11 +9,12 @@ import {
   switchMap,
 } from 'rxjs';
 import { Router } from '@angular/router';
+import { userRoles } from './roles';
 
-export interface UserInfo {
+export interface AuthUserInfo {
   id: string;
   name: string;
-  role: string;
+  admin: boolean;
 }
 
 @Injectable({
@@ -40,7 +41,7 @@ export class AuthService {
     .asObservable()
     .pipe(distinctUntilChanged());
 
-  private readonly _user = new ReplaySubject<UserInfo>(1);
+  private readonly _user = new ReplaySubject<AuthUserInfo>(1);
   public readonly user$ = this._user.asObservable();
 
   constructor(
@@ -58,8 +59,12 @@ export class AuthService {
 
       this.update(true);
 
-      const state = this.oauth.state;
+      let state = this.oauth.state;
       if (state && state.length > 0) {
+        if (state.startsWith('%2F')) {
+          state = state.substring(3);
+        }
+
         this.router.navigateByUrl(state);
       }
     });
@@ -90,10 +95,10 @@ export class AuthService {
       return;
     }
 
-    const data: UserInfo = {
+    const data: AuthUserInfo = {
       id: claims['sub'],
       name: claims['name'],
-      role: claims['role'],
+      admin: claims['role'] === userRoles.admin,
     };
 
     this._user.next(data);

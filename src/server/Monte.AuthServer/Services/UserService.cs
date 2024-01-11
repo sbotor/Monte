@@ -1,50 +1,60 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Monte.AuthServer.Data;
 using Monte.AuthServer.Features.Users.Extensions;
 using Monte.AuthServer.Features.Users.Models;
 using Monte.AuthServer.Helpers;
+using Monte.AuthServer.Models;
 
 namespace Monte.AuthServer.Services;
 
 public class UserService : IUserService
 {
-    private readonly UserManager<IdentityUser> _userManager;
+    private readonly UserManager<AppUser> _userManager;
+    private readonly AuthDbContext _dbContext;
+    private readonly IUserContext _userContext;
 
-    public UserService(UserManager<IdentityUser> userManager)
+    public UserService(
+        UserManager<AppUser> userManager,
+        AuthDbContext dbContext,
+        IUserContext userContext)
     {
         _userManager = userManager;
+        _dbContext = dbContext;
+        _userContext = userContext;
     }
 
     public async Task<Result<UserDetails>> CreateUser(CreateUserRequest request, string role)
     {
-        if(role == AuthConsts.Roles.MonteAdmin)
+        if (role == AuthConsts.Roles.MonteAdmin)
         {
             if ((await _userManager.GetUsersInRoleAsync(AuthConsts.Roles.MonteAdmin)).Any())
             {
-                return new Result<UserDetails>("Couldn't create admin, because an admin already exists in the system.", Result.ErrorType.BadRequest);
+                return Result.Failure<UserDetails>(
+                    ErrorType.BadRequest,
+                    "Couldn't create admin, because an admin already exists in the system.");
             }
         }
 
         if (string.IsNullOrEmpty(request.Username)
             || string.IsNullOrEmpty(request.Password))
         {
-            return new Result<UserDetails>("Invalid credentials.", Result.ErrorType.BadRequest);
+            return Result.Failure<UserDetails>(ErrorType.BadRequest, "Invalid credentials.");
         }
 
         var existingUser = await _userManager.FindByNameAsync(request.Username);
         if (existingUser is not null)
         {
-            return new Result<UserDetails>("User already exists.", Result.ErrorType.BadRequest);
+            return Result.Failure<UserDetails>(ErrorType.BadRequest, "User already exists.");
         }
 
-        var user = new IdentityUser
-        {
-            UserName = request.Username
-        };
+        var user = new AppUser { UserName = request.Username };
 
         var result = await _userManager.CreateAsync(user);
         if (!result.Succeeded)
         {
-            return new Result<UserDetails>(result.Errors.ToErrorDict().ToString(), Result.ErrorType.BadRequest);
+            return Result.Failure<UserDetails>(ErrorType.BadRequest,
+                result.Errors.ToErrorDictionary());
         }
 
         try
@@ -55,7 +65,7 @@ public class UserService : IUserService
         catch (IdentityErrorException e)
         {
             await _userManager.DeleteAsync(user);
-            return new Result<UserDetails>(e.Errors.ToString(), Result.ErrorType.BadRequest);
+            return Result.Failure<UserDetails>(ErrorType.BadRequest, e.Errors);
         }
         catch
         {
@@ -63,62 +73,72 @@ public class UserService : IUserService
             throw;
         }
 
-        var response = new UserDetails() { Id = user.Id, Name = user.UserName };
+        var response = new UserDetails { Id = user.Id, Name = user.UserName };
 
-        return new Result<UserDetails>(response);
+        return Result.Success(response);
     }
-    
-    public async Task<Result<UserDetails>> ChangeUsername(ChangeUsernameRequest request)
+
+    public async Task<Result<UserDetails>> ChangeUsername(string userId, string username)
     {
-        if (string.IsNullOrEmpty(request.NewUsername) || string.IsNullOrEmpty(request.UserId))
+        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(userId))
         {
-            return new Result<UserDetails>("Invalid credentials.", Result.ErrorType.BadRequest);
+            return Result.Failure<UserDetails>(ErrorType.BadRequest, "Invalid credentials.");
+        }
+        
+        if (userId != await _userContext.GetUserId()
+            && !await _userContext.IsAdmin())
+        {
+            return Result.Failure<UserDetails>(ErrorType.Forbidden);
+        }
+        
+        var usr = await _userManager.FindByIdAsync(userId);
+        if (usr is null)
+        {
+            return Result.Failure<UserDetails>(ErrorType.NotFound,
+                $"User with the id '{userId}' was not found.");
         }
 
-        var existingUser = await _userManager.FindByNameAsync(request.NewUsername);
+        var existingUser = await _userManager.FindByNameAsync(username);
         if (existingUser is not null)
         {
-            return new Result<UserDetails>("This username is already taken.", Result.ErrorType.BadRequest);
+            return Result.Failure<UserDetails>(ErrorType.BadRequest, "This username is already taken.");
         }
-
-        var usr = await _userManager.FindByIdAsync(request.UserId);
-        if (usr == null)
-        {
-            return new Result<UserDetails>($"User with the id '{request.UserId}' was not found.", Result.ErrorType.NotFound);
-        }
-
 
         try
         {
-            ThrowIfError(await _userManager.SetUserNameAsync(usr, request.NewUsername));
+            ThrowIfError(await _userManager.SetUserNameAsync(usr, username));
         }
         catch (IdentityErrorException e)
         {
-            return new Result<UserDetails>(e.Errors.ToString(), Result.ErrorType.BadRequest);
-        }
-        catch
-        {
-            throw;
+            return Result.Failure<UserDetails>(ErrorType.BadRequest, e.Errors);
         }
 
-        var response = new UserDetails() { Id = usr.Id, Name = usr.UserName ?? "-" };
+        var response = new UserDetails { Id = usr.Id, Name = usr.UserName ?? "-" };
 
-        return new Result<UserDetails>(response);
+        return Result.Success(response);
     }
-    
-    public async Task<Result> ChangePassword(ChangePasswordRequest request)
+
+    public async Task<Result> ChangePassword(string userId, ChangePasswordRequest request)
     {
-        if (string.IsNullOrEmpty(request.UserId) ||
+        if (string.IsNullOrEmpty(userId) ||
             string.IsNullOrEmpty(request.OldPassword) ||
             string.IsNullOrEmpty(request.NewPassword))
         {
-            return new Result("Invalid credentials.", Result.ErrorType.BadRequest);
+            return Result.Failure(ErrorType.BadRequest,
+                "Invalid credentials.");
+        }
+        
+        if (userId != await _userContext.GetUserId()
+            && !await _userContext.IsAdmin())
+        {
+            return Result.Failure<UserDetails>(ErrorType.Forbidden);
         }
 
-        var usr = await _userManager.FindByIdAsync(request.UserId);
+        var usr = await _userManager.FindByIdAsync(userId);
         if (usr == null)
         {
-            return new Result($"User with the id '{request.UserId}' was not found.", Result.ErrorType.NotFound);
+            return Result.Failure(ErrorType.NotFound,
+                $"User with the id '{userId}' was not found.");
         }
 
         try
@@ -127,26 +147,54 @@ public class UserService : IUserService
         }
         catch (IdentityErrorException e)
         {
-            return new Result(e.Errors.ToString(), Result.ErrorType.BadRequest);
-        }
-        catch
-        {
-            throw;
+            return Result.Failure(ErrorType.BadRequest, e.Errors.ToString());
         }
 
-        return new Result();
+        return Result.Success();
     }
 
-    public Task<Result<IEnumerable<UserDetails>>> GetUsers()
+    public async Task<Result<UserDetails[]>> GetUsers(CancellationToken cancellationToken = default)
     {
-        var users = _userManager.Users;
-        var result = users.Select(x =>
-            new UserDetails()
+        var users = await _dbContext.Users.AsNoTracking()
+            .Include(x => x.UserRoles).ThenInclude(x => x.Role)
+            .OrderBy(x => x.UserName)
+            .Select(x => new UserDetails
             {
                 Id = x.Id,
-                Name = x.UserName ?? "-"
-            });
-        return Task.FromResult(new Result<IEnumerable<UserDetails>>(result));
+                Name = x.UserName ?? "-",
+                Role = x.UserRoles.First().Role.Name!
+            })
+            .ToArrayAsync(cancellationToken);
+
+        return Result.Success(users);
+    }
+
+    public async Task<Result<UserDetails>> GetUser(string id, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrEmpty(id))
+        {
+            return Result.Failure<UserDetails>(ErrorType.BadRequest);
+        }
+        
+        if (id != await _userContext.GetUserId(cancellationToken)
+            && !await _userContext.IsAdmin(cancellationToken))
+        {
+            return Result.Failure<UserDetails>(ErrorType.Forbidden);
+        }
+
+        var user = await _dbContext.Users.AsNoTracking()
+            .Include(x => x.UserRoles).ThenInclude(x => x.Role)
+            .Select(x => new UserDetails
+            {
+                Id = x.Id,
+                Name = x.UserName!,
+                Role = x.UserRoles.First().Role.Name!
+            })
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+
+        return user is null
+            ? Result.Failure<UserDetails>(ErrorType.NotFound)
+            : Result.Success(user);
     }
 
     public async Task<Result> DeleteUser(string userId)
@@ -154,12 +202,12 @@ public class UserService : IUserService
         var existingUser = await _userManager.FindByIdAsync(userId);
         if (existingUser == null)
         {
-            return new Result($"User with the id '{userId}' was not found.", Result.ErrorType.NotFound);
+            return Result.Failure(ErrorType.NotFound, $"User with the id '{userId}' was not found.");
         }
-       
+
         await _userManager.DeleteAsync(existingUser);
 
-        return new Result();
+        return Result.Success();
     }
 
     private static void ThrowIfError(IdentityResult result)
@@ -169,59 +217,26 @@ public class UserService : IUserService
             return;
         }
 
-        throw new IdentityErrorException(result.Errors.ToErrorDict());
+        throw new IdentityErrorException(result.Errors.ToErrorDictionary());
     }
 
     private sealed class IdentityErrorException : Exception
     {
-        public IReadOnlyDictionary<string, string[]> Errors { get; }
+        public ErrorDictionary Errors { get; }
 
-        public IdentityErrorException(IReadOnlyDictionary<string, string[]> errors)
+        public IdentityErrorException(ErrorDictionary errors)
         {
             Errors = errors;
         }
     }
 }
 
-public class Result
-{
-    public string? ErrorMessage { get; set; }
-    public ErrorType ErrType { get; set; }
-
-    public Result(string? error, ErrorType type)
-    {
-        ErrorMessage = error;
-        ErrType = type;
-    }
-
-    public Result()
-    {
-        ErrorMessage = string.Empty;
-        ErrType = ErrorType.None;
-    }
-
-    public enum ErrorType
-    {
-        None, NotFound, BadRequest
-    }
-}
-
-public class Result<T> : Result
-{
-    public T? Object { get; set; }
-
-    public Result(T? obj) : base()
-    {
-        Object = obj;
-    }
-    public Result(string? error, ErrorType type) : base(error, type) { }
-}
-
 public interface IUserService
 {
     public Task<Result<UserDetails>> CreateUser(CreateUserRequest request, string role);
-    public Task<Result<UserDetails>> ChangeUsername(ChangeUsernameRequest request);
-    public Task<Result> ChangePassword(ChangePasswordRequest request);
-    public Task<Result<IEnumerable<UserDetails>>> GetUsers();
+    public Task<Result<UserDetails>> ChangeUsername(string userId, string username);
+    public Task<Result> ChangePassword(string userId, ChangePasswordRequest request);
+    public Task<Result<UserDetails[]>> GetUsers(CancellationToken cancellationToken = default);
     public Task<Result> DeleteUser(string userId);
+    Task<Result<UserDetails>> GetUser(string id, CancellationToken cancellationToken = default);
 }

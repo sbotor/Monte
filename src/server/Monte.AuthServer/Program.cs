@@ -12,6 +12,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.ConfigureSwagger(builder.Configuration);
 
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddCors(x =>
 {
     var origins = builder.Configuration

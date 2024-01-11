@@ -85,16 +85,17 @@ public class UserService : IUserService
             return Result.Failure<UserDetails>(ErrorType.BadRequest, "Invalid credentials.");
         }
         
+        if (userId != await _userContext.GetUserId()
+            && !await _userContext.IsAdmin())
+        {
+            return Result.Failure<UserDetails>(ErrorType.Forbidden);
+        }
+        
         var usr = await _userManager.FindByIdAsync(userId);
         if (usr is null)
         {
             return Result.Failure<UserDetails>(ErrorType.NotFound,
                 $"User with the id '{userId}' was not found.");
-        }
-
-        if (usr.Id != await _userContext.GetUserId() && !await _userContext.IsAdmin())
-        {
-            return Result.Failure<UserDetails>(ErrorType.Forbidden);
         }
 
         var existingUser = await _userManager.FindByNameAsync(username);
@@ -126,17 +127,18 @@ public class UserService : IUserService
             return Result.Failure(ErrorType.BadRequest,
                 "Invalid credentials.");
         }
+        
+        if (userId != await _userContext.GetUserId()
+            && !await _userContext.IsAdmin())
+        {
+            return Result.Failure<UserDetails>(ErrorType.Forbidden);
+        }
 
         var usr = await _userManager.FindByIdAsync(userId);
         if (usr == null)
         {
             return Result.Failure(ErrorType.NotFound,
                 $"User with the id '{userId}' was not found.");
-        }
-        
-        if (usr.Id != await _userContext.GetUserId() && !await _userContext.IsAdmin())
-        {
-            return Result.Failure<UserDetails>(ErrorType.Forbidden);
         }
 
         try
@@ -173,6 +175,12 @@ public class UserService : IUserService
         {
             return Result.Failure<UserDetails>(ErrorType.BadRequest);
         }
+        
+        if (id != await _userContext.GetUserId(cancellationToken)
+            && !await _userContext.IsAdmin(cancellationToken))
+        {
+            return Result.Failure<UserDetails>(ErrorType.Forbidden);
+        }
 
         var user = await _dbContext.Users.AsNoTracking()
             .Include(x => x.UserRoles).ThenInclude(x => x.Role)
@@ -184,18 +192,9 @@ public class UserService : IUserService
             })
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
-        if (user is null)
-        {
-            return Result.Failure<UserDetails>(ErrorType.NotFound);
-        }
-
-        if (user.Id != await _userContext.GetUserId(cancellationToken)
-            && !await _userContext.IsAdmin(cancellationToken))
-        {
-            return Result.Failure<UserDetails>(ErrorType.Forbidden);
-        }
-
-        return Result.Success(user);
+        return user is null
+            ? Result.Failure<UserDetails>(ErrorType.NotFound)
+            : Result.Success(user);
     }
 
     public async Task<Result> DeleteUser(string userId)

@@ -122,6 +122,7 @@ class MonteClient:
 
         body = monitoring.get_system_info()
 
+        self._logger.info("Initializing connection to API")
         response = await self._execute_core('PUT', 'agentMetrics/init', None, True, json=body, headers=headers)
         if not response:
             self._logger.error('Could not initialize agent ID.')
@@ -135,7 +136,8 @@ class MonteClient:
         self._metrics_key = response['metricsKey']
         
         self._initialized = True
-            
+        
+        self._logger.info("Connection to API established")
         return True
 
     async def _ensure_auth(self):
@@ -145,6 +147,8 @@ class MonteClient:
         success = await self._auth.authenticate()
         if not success:
             self._logger.error('Could not authenticate.')
+        else:
+            self._logger.info("Authenticated successfully.")
         
         return success
     
@@ -154,11 +158,14 @@ class MonteClient:
         body = monitoring.get_system_resources(self._config.reporting_period)
         body['metricsKey'] = self._metrics_key
 
+        self._logger.info("Sending machine report.")
         key = await self._execute('POST', 'agentMetrics', json=body)
 
         if not key:
             self._logger.error('No metrics key response.')
             return
+        
+        self._logger.info("Data sent successfully.")
         
         self._metrics_key = key
             

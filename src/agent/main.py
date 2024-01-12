@@ -4,15 +4,15 @@ import logging
 
 from monte_client import MonteClient, AuthClient
 from config import create_config, validate_config
+from logger import configure_logger
+
 
 CONFIG_FILE = './config.yaml'
 ENVIRONMENT = 'development' # production, development
 
-LOGGING_LEVEL = logging.DEBUG
-LOGGING_FORMAT = '%(asctime)s %(levelname)s %(message)s'
-
 async def main():
-    logging.basicConfig(level=LOGGING_LEVEL, format=LOGGING_FORMAT)
+    configure_logger(CONFIG_FILE)
+    logger = logging.getLogger()
 
     config = create_config(CONFIG_FILE, ENVIRONMENT)
     validate_config(config)
@@ -24,13 +24,17 @@ async def main():
             await run(api_client, config)
 
 async def run(api: MonteClient, config):
+    logger = logging.getLogger()
     while True:
         try:
             await api.push_report()
             await asyncio.sleep(config.reporting_period)
         except Exception as e:
-            logging.error(f'Exception occurred.', exc_info=e)
+            logger.error(f'Exception occurred.', exc_info=e)
     
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    finally:
+        logging.getLogger().info("Exiting program.\n")

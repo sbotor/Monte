@@ -15,8 +15,10 @@ import { map } from 'rxjs';
 })
 export class ChartTypeSelectComponent {
   public readonly options: SelectOption<ChartType>[] = [
-    { value: 'cpu', label: 'CPU usage' },
-    { value: 'memory', label: 'Memory usage' },
+    { value: 'cpuUsage', label: 'CPU usage' },
+    { value: 'cpuLoad', label: 'CPU load' },
+    { value: 'memoryUsage', label: 'Memory usage' },
+    { value: 'memoryAvailable', label: 'Memory available' },
   ];
 
   public readonly chartType$ = this.params.paramMap$.pipe(

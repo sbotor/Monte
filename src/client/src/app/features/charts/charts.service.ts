@@ -24,7 +24,7 @@ export interface CpuUsageChartParams extends ChartParams {
   core?: number | null;
 }
 
-export interface MemoryUsageChartParams extends ChartParams {
+export interface MemoryChartParams extends ChartParams {
   swap: boolean;
 }
 
@@ -35,10 +35,18 @@ export class ChartsService {
   constructor(private readonly api: ApiService, private readonly clock: ClockService) {}
 
   public getCpuUsage(agentId: string, params: CpuUsageChartParams) {
-    return this.api.get<ChartData<number>>(`charts/${agentId}/cpu`, params);
+    return this.api.get<ChartData<number>>(`charts/${agentId}/cpu/usage`, params);
   }
 
-  public getMemoryUsage(agentId: string, params: MemoryUsageChartParams) {
-    return this.api.get<ChartData<number>>(`charts/${agentId}/memory`, params);
+  public getCpuLoad(agentId: string, params: ChartParams) {
+    return this.api.get<ChartData<number>>(`charts/${agentId}/cpu/load`, params);
+  }
+
+  public getMemoryUsage(agentId: string, params: MemoryChartParams) {
+    return this.api.get<ChartData<number>>(`charts/${agentId}/memory/usage`, params);
+  }
+
+  public getMemoryAvailable(agentId: string, params: MemoryChartParams) {
+    return this.api.get<ChartData<number>>(`charts/${agentId}/memory/available`, params);
   }
 }

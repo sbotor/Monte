@@ -35,35 +35,30 @@ public static class GetCpuUsageChartData
             Query query,
             CancellationToken cancellationToken)
         {
-            IReadOnlyDictionary<DateTime, double> data;
+            RawChartValue[] data;
 
             if (!query.Core.HasValue)
             {
-                var entries = await context.DbContext.MetricsEntries.AsNoTracking()
+                data = await context.DbContext.MetricsEntries.AsNoTracking()
                     .OrderedFromAgentAndTime(context.AgentId, context.DateFrom, context.DateTo)
+                    .Select(x => new RawChartValue(x.ReportDateTime, x.Cpu.AveragePercentUsed))
                     .ToArrayAsync(cancellationToken);
-
-                data = context.ResultBuilder.Group(entries, x => x.ReportDateTime)
-                    .WithGranularity(context.DateTimeGranularity)
-                    .Apply(x => x.Cpu.AveragePercentUsed, query.AggregationType);
             }
             else
             {
-                var coreEntries = await context.DbContext.CoreUsageEntries.AsNoTracking()
+                data = await context.DbContext.CoreUsageEntries.AsNoTracking()
                     .Where(x => x.Entry.AgentId == context.AgentId)
                     .Where(x => x.Entry.ReportDateTime >= context.DateFrom
                         && x.Entry.ReportDateTime < context.DateTo)
                     .Where(x => x.Ordinal == query.Core)
                     .Select(x => new { x.Entry.ReportDateTime, x.PercentUsed })
                     .OrderBy(x => x.ReportDateTime)
+                    .Select(x => new RawChartValue(x.ReportDateTime, x.PercentUsed))
                     .ToArrayAsync(cancellationToken);
-
-                data = context.ResultBuilder.Group(coreEntries, x => x.ReportDateTime)
-                    .WithGranularity(context.DateTimeGranularity)
-                    .Apply(x => x.PercentUsed, query.AggregationType);
             }
 
-            return data;
+            return context.ResultAggregator.AggregateValues(data,
+                context.DateTimeGranularity, query.AggregationType);
         }
     }
 

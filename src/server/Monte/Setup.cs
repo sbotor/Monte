@@ -32,10 +32,11 @@ public static class Setup
             x => x.UseNpgsql(config.GetConnectionString("Default")));
 
         services.AddSingleton<IClock, Clock>();
-        services.AddSingleton<IChartResultBuilder, ChartResultBuilder>();
+        services.AddSingleton<IChartResultAggregator, ChartResultAggregator>();
         services.AddSingleton<IMetricsKeyGenerator, MetricsKeyGenerator>();
 
         services.AddScoped(typeof(IChartHelper<>), typeof(ChartHelper<>));
+        services.AddScoped(typeof(IMemoryChartHelper<>), typeof(MemoryChartHelper<>));
         
         return services;
     }

@@ -6,7 +6,7 @@ using Monte.Features.Charts.Models;
 
 namespace Monte.Features.Charts.Queries;
 
-public static class GetMemoryUsageChartData
+public static class GetAvailableMemoryChartData
 {
     public record Query(
         Guid AgentId,
@@ -26,7 +26,7 @@ public static class GetMemoryUsageChartData
         }
 
         public Task<ChartData<double>> Handle(Query request, CancellationToken cancellationToken)
-            => _helper.GetMemoryUsageData(request, cancellationToken);
+            => _helper.GetAvailableMemoryData(request, cancellationToken);
     }
 
     public class Validator : AbstractValidator<GetCpuUsageChartData.Query>

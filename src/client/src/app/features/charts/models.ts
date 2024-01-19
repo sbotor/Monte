@@ -8,7 +8,7 @@ export interface ChartOptions {
   theme: ApexTheme;
 }
 
-export type ChartType = 'cpu' | 'memory';
+export type ChartType = 'cpuUsage' | 'memoryUsage' | 'cpuLoad' | 'memoryAvailable';
 
 export interface SelectOption<T> {
   value: T;

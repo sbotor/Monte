@@ -7,10 +7,6 @@ import { Router } from '@angular/router';
 import { SpinnerComponent } from '@components/spinner';
 import { formatMemoryDisplay } from '@core/display';
 
-export interface AgentDetailsResult {
-  value: AgentDetails | null;
-}
-
 @Component({
   selector: 'app-agent-details-drawer',
   standalone: true,

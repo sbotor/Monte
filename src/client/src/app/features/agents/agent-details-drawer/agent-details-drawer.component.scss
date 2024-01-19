@@ -7,8 +7,7 @@
 }
 
 .button-row {
-  @include mix.flex-row;
-  gap: 10px;
+  @include mix.flex-row(10px);
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;

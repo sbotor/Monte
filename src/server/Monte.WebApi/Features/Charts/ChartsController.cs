@@ -19,17 +19,31 @@ public class ChartsController : ControllerBase
         _sender = sender;
     }
 
-    [HttpGet("{agentId:guid}/cpu")]
+    [HttpGet("{agentId:guid}/cpu/usage")]
     public Task<ChartData<double>> GetCpuUsage(
         Guid agentId,
         [FromQuery] GetCpuUsageChartDataRequest request,
         CancellationToken cancellationToken)
         => _sender.Send(request.ToQuery(agentId), cancellationToken);
     
-    [HttpGet("{agentId:guid}/memory")]
-    public Task<ChartData<double>> GetMemoryUsage(
+    [HttpGet("{agentId:guid}/cpu/load")]
+    public Task<ChartData<double>> GetCpuUsage(
         Guid agentId,
-        [FromQuery] GetMemoryUsageChartDataRequest request,
+        [FromQuery] GetCpuLoadChartDataRequest request,
         CancellationToken cancellationToken)
         => _sender.Send(request.ToQuery(agentId), cancellationToken);
+    
+    [HttpGet("{agentId:guid}/memory/usage")]
+    public Task<ChartData<double>> GetMemoryUsage(
+        Guid agentId,
+        [FromQuery] GetMemoryChartDataRequest request,
+        CancellationToken cancellationToken)
+        => _sender.Send(request.ToUsageChartQuery(agentId), cancellationToken);
+    
+    [HttpGet("{agentId:guid}/memory/available")]
+    public Task<ChartData<double>> GetAvailableMemory(
+        Guid agentId,
+        [FromQuery] GetMemoryChartDataRequest request,
+        CancellationToken cancellationToken)
+        => _sender.Send(request.ToAvailableChartQuery(agentId), cancellationToken);
 }

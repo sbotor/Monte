@@ -5,10 +5,10 @@ import {
   ChartParams,
   ChartsService,
   CpuUsageChartParams,
-  MemoryUsageChartParams,
+  MemoryChartParams,
 } from './charts.service';
 import { UtcDate } from '@core/utcDate';
-import { of, switchMap } from 'rxjs';
+import { Observable, of, switchMap } from 'rxjs';
 import { ChartParamValues } from './chartParamMap';
 
 @Injectable({
@@ -20,12 +20,16 @@ export class ChartsDataService {
     private readonly api: ChartsService
   ) {}
 
-  public fetchData(params: ChartParamValues) {
+  public fetchData(params: ChartParamValues): Observable<boolean> {
     switch (params.chartType) {
-      case 'cpu':
+      case 'cpuUsage':
         return this.fetchCpuUsage(params);
-      case 'memory':
+      case 'memoryUsage':
         return this.fetchMemoryUsage(params);
+      case 'cpuLoad':
+        return this.fetchCpuLoad(params);
+      case 'memoryAvailable':
+        return this.fetchMemoryAvailable(params);
     }
   }
 
@@ -37,32 +41,60 @@ export class ChartsDataService {
 
     return this.api.getCpuUsage(params.agentId, request).pipe(
       switchMap((x) => {
-        this.setNewValues(x);
+        this.setNewValues(x, true);
+        return of(true);
+      })
+    );
+  }
+
+  private fetchCpuLoad(params: ChartParamValues) {
+    const request: CpuUsageChartParams = {
+      ...this.getBaseParams(params),
+    };
+
+    return this.api.getCpuLoad(params.agentId, request).pipe(
+      switchMap((x) => {
+        this.setNewValues(x, true);
         return of(true);
       })
     );
   }
 
   private fetchMemoryUsage(params: ChartParamValues) {
-    const request: MemoryUsageChartParams = {
+    const request: MemoryChartParams = {
       ...this.getBaseParams(params),
       swap: params.swapMemory,
     };
 
     return this.api.getMemoryUsage(params.agentId, request).pipe(
       switchMap((x) => {
-        this.setNewValues(x);
+        this.setNewValues(x, true);
         return of(true);
       })
     );
   }
 
-  private setNewValues(data: ChartData<number>) {
+  private fetchMemoryAvailable(params: ChartParamValues) {
+    const request: MemoryChartParams = {
+      ...this.getBaseParams(params),
+      swap: params.swapMemory,
+    };
+
+    return this.api.getMemoryAvailable(params.agentId, request).pipe(
+      switchMap((x) => {
+        this.setNewValues(x, false);
+        return of(true);
+      })
+    );
+  }
+
+  private setNewValues(data: ChartData<number>, percents: boolean) {
     this.params.updateData(
       data.values.map((x, i) => {
         const xVal = data.labels[i].valueOf();
         return { x: xVal, y: x };
-      })
+      }),
+      percents
     );
   }
 

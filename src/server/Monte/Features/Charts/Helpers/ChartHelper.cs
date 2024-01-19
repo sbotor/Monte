@@ -10,7 +10,7 @@ public record ChartContext(
     DateTime DateFrom,
     DateTime DateTo,
     DateTimeGranularity DateTimeGranularity,
-    IChartResultBuilder ResultBuilder);
+    IChartResultAggregator ResultAggregator);
 
 public interface IChartRequest : IDateRange
 {
@@ -27,12 +27,12 @@ public interface IChartHelper<in TRequest> where TRequest : IChartRequest
 public class ChartHelper<TRequest> : IChartHelper<TRequest> where TRequest : IChartRequest
 {
     private readonly MonteDbContext _dbContext;
-    private readonly IChartResultBuilder _resultBuilder;
+    private readonly IChartResultAggregator _resultAggregator;
 
-    public ChartHelper(MonteDbContext dbContext, IChartResultBuilder resultBuilder)
+    public ChartHelper(MonteDbContext dbContext, IChartResultAggregator resultAggregator)
     {
         _dbContext = dbContext;
-        _resultBuilder = resultBuilder;
+        _resultAggregator = resultAggregator;
     }
 
     public Task<ChartData<double>> FetchData(
@@ -55,7 +55,7 @@ public class ChartHelper<TRequest> : IChartHelper<TRequest> where TRequest : ICh
             from,
             to,
             timeDiffKind,
-            _resultBuilder);
+            _resultAggregator);
 
         var data = await resultFunc(context);
 

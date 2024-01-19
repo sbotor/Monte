@@ -34,9 +34,19 @@ export class ChartsParamsService {
     this._paramMap.next(changed);
   }
 
-  public updateData(values: ChartDataValues[]) {
+  public updateData(values: ChartDataValues[], percents: boolean) {
     this._chartOptions.update((x) => {
       x.series[0].data = values;
+
+      const yAxis = x.yAxis;
+      if (percents) {
+        yAxis.min = 0;
+        yAxis.max = 100;
+      } else {
+        yAxis.min = undefined
+        yAxis.max = undefined
+      }
+
       return x;
     });
   }

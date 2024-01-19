@@ -21,9 +21,7 @@
           <mat-card-header>
             <mat-card-title>{{ getChartTitle(data.params) }}</mat-card-title>
             @if (getChartSubtitle(data.params); as subtitle) {
-              <ng-container>
-                <mat-card-subtitle>{{ subtitle }}</mat-card-subtitle>
-              </ng-container>
+              <mat-card-subtitle>{{ subtitle }}</mat-card-subtitle>
             }
           </mat-card-header>
           <apx-chart class="chart" [series]="chartOptions().series" [chart]="chartOptions().chart"

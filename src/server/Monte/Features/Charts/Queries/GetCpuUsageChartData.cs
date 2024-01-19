@@ -49,10 +49,11 @@ public static class GetCpuUsageChartData
                 data = await context.DbContext.CoreUsageEntries.AsNoTracking()
                     .Where(x => x.Entry.AgentId == context.AgentId)
                     .Where(x => x.Entry.ReportDateTime >= context.DateFrom
-                                && x.Entry.ReportDateTime < context.DateTo)
+                        && x.Entry.ReportDateTime < context.DateTo)
                     .Where(x => x.Ordinal == query.Core)
-                    .Select(x => new RawChartValue(x.Entry.ReportDateTime, x.PercentUsed))
+                    .Select(x => new { x.Entry.ReportDateTime, x.PercentUsed })
                     .OrderBy(x => x.ReportDateTime)
+                    .Select(x => new RawChartValue(x.ReportDateTime, x.PercentUsed))
                     .ToArrayAsync(cancellationToken);
             }
 

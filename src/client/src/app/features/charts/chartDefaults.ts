@@ -22,7 +22,7 @@ export const chartParamMapDefaults = (clock: ClockService): ChartParamMap => {
   return new ChartParamMap({
     agentId: '',
     dateRange: clock.todayRange(),
-    chartType: 'cpu',
+    chartType: 'cpuUsage',
     aggregationType: 'Avg',
     cpuCore: null,
     swapMemory: false,

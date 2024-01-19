@@ -7,9 +7,12 @@
         <app-chart-date-picker></app-chart-date-picker>
         <app-chart-type-select></app-chart-type-select>
         <app-aggregation-type-select></app-aggregation-type-select>
-        <app-cpu-core-select *ngIf="data.params.chartType === 'cpu'"
-          [cpuCoreCount]="data.agent.cpuLogicalCount"></app-cpu-core-select>
-        <app-memory-type-toggle *ngIf="data.params.chartType === 'memory'"></app-memory-type-toggle>
+        @if (data.params.chartType === 'cpuUsage') {
+          <app-cpu-core-select [cpuCoreCount]="data.agent.cpuLogicalCount"></app-cpu-core-select>
+        }
+        @if (data.params.chartType === 'memoryUsage' || data.params.chartType === 'memoryAvailable') {
+          <app-memory-type-toggle></app-memory-type-toggle>
+        }
       </div>
     </mat-drawer>
     <mat-drawer-content>
@@ -17,7 +20,9 @@
         <mat-card class="chart-card">
           <mat-card-header>
             <mat-card-title>{{ getChartTitle(data.params) }}</mat-card-title>
-            <mat-card-subtitle *ngIf="getChartSubtitle(data.params); let subtitle">{{ subtitle }}</mat-card-subtitle>
+            @if (getChartSubtitle(data.params); as subtitle) {
+              <mat-card-subtitle>{{ subtitle }}</mat-card-subtitle>
+            }
           </mat-card-header>
           <apx-chart class="chart" [series]="chartOptions().series" [chart]="chartOptions().chart"
             [xaxis]="chartOptions().xAxis" [theme]="chartOptions().theme" [yaxis]="chartOptions().yAxis"></apx-chart>

@@ -17,10 +17,7 @@ import {
 } from 'rxjs';
 import { MatDividerModule } from '@angular/material/divider';
 import { CpuCoreSelectComponent } from '@features/charts/cpu-core-select/cpu-core-select.component';
-import {
-  AgentDetails,
-  AgentsService,
-} from '@features/agents/agents.service';
+import { AgentDetails, AgentsService } from '@features/agents/agents.service';
 import { MemoryTypeToggleComponent } from '@features/charts/memory-type-toggle/memory-type-toggle.component';
 import { ChartsDataService } from '@features/charts/charts-data.service';
 import { AggregationTypeSelectComponent } from '@features/charts/aggregation-type-select/aggregation-type-select.component';
@@ -114,15 +111,18 @@ export class ResourceChartComponent implements OnInit, OnDestroy {
     return `${prefix} ${suffix}`;
   }
 
-  public getChartSubtitle(params: ChartParamValues) {
+  public getChartSubtitle(params: ChartParamValues): string | null {
     switch (params.chartType) {
-      case 'cpu':
+      case 'cpuUsage':
         const core = params.cpuCore;
         return core === null || core === undefined
           ? null
           : 'Core ' + core.toString();
-      case 'memory':
+      case 'memoryUsage':
+      case 'memoryAvailable':
         return params.swapMemory ? 'Swap' : null;
+      case 'cpuLoad':
+        return null;
     }
   }
 
@@ -137,12 +137,16 @@ export class ResourceChartComponent implements OnInit, OnDestroy {
     }
   }
 
-  private getChartTitleSuffix(chartType: ChartType) {
+  private getChartTitleSuffix(chartType: ChartType): string {
     switch (chartType) {
-      case 'cpu':
+      case 'cpuUsage':
         return 'CPU usage';
-      case 'memory':
+      case 'memoryUsage':
         return 'memory usage';
+      case 'cpuLoad':
+        return 'CPU load';
+      case 'memoryAvailable':
+        return 'memory available'
     }
   }
 }

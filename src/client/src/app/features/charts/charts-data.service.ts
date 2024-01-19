@@ -54,7 +54,7 @@ export class ChartsDataService {
 
     return this.api.getCpuLoad(params.agentId, request).pipe(
       switchMap((x) => {
-        this.setNewValues(x, true);
+        this.setNewValues(x, false);
         return of(true);
       })
     );

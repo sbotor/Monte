@@ -18,8 +18,22 @@ export interface GetAgentsRequest {
 
 export interface AgentDetails {
   id: string;
+  lastHeartbeat: string;
   displayName: string;
-  cpuLogicalCount: number;
+  cpu: AgentCpuDetails;
+  memory: AgentMemoryDetails;
+}
+
+export interface AgentCpuDetails {
+  logicalCount: number;
+  physicalCount: number;
+  minFreq: number;
+  maxFreq: number;
+}
+
+export interface AgentMemoryDetails {
+  total: number;
+  swap: number;
 }
 
 @Injectable({

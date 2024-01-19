@@ -8,7 +8,7 @@
         <app-chart-type-select></app-chart-type-select>
         <app-aggregation-type-select></app-aggregation-type-select>
         <app-cpu-core-select *ngIf="data.params.chartType === 'cpu'"
-          [cpuCoreCount]="data.agent.cpuLogicalCount"></app-cpu-core-select>
+          [cpuCoreCount]="data.agent.cpu.logicalCount"></app-cpu-core-select>
         <app-memory-type-toggle *ngIf="data.params.chartType === 'memory'"></app-memory-type-toggle>
       </div>
     </mat-drawer>

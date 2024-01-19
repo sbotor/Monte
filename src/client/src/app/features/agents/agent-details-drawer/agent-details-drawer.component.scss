@@ -1,0 +1,15 @@
+@use 'mixins' as mix;
+
+:host {
+  @include mix.flex-col;
+  height: 100%;
+  padding: 10px 20px;
+}
+
+.button-row {
+  @include mix.flex-row;
+  gap: 10px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}

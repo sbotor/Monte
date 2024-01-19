@@ -2,6 +2,7 @@
 
 :host {
   @include mix.flex-col(10px);
+  @include mix.screen-padding;
 }
 
 .card-header {

@@ -1,8 +1,8 @@
 ﻿namespace Monte.Features.Agents.Models;
 
-public class AgentDetails
-{
-    public Guid Id { get; set; }
-    public string DisplayName { get; set; } = null!;
-    public int CpuLogicalCount { get; set; }
-}
+public record AgentDetails(
+    Guid Id,
+    DateTime LastHeartbeat,
+    string DisplayName,
+    Agent.CpuInfo Cpu,
+    Agent.MemoryInfo Memory);

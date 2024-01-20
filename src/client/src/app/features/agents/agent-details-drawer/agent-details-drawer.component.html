@@ -1,0 +1,21 @@
+<div class="button-row">
+  <button mat-icon-button (click)="close.emit('close')">
+    <mat-icon>close</mat-icon>
+  </button>
+  @if (agent) {
+    <button mat-raised-button color="primary" (click)="onChartsClicked(agent.id)">Open charts</button>
+  }
+</div>
+@if (agent) {
+  <h1>{{ agent.displayName }}</h1>
+  <p>Last hearbeat: <i>{{ agent.lastHeartbeat| date:'medium' }}</i></p>
+  <h2>CPU</h2>
+  <p>Physical core count: <i>{{ agent.cpu.physicalCount }}</i></p>
+  <p>Logical core count: <i>{{ agent.cpu.logicalCount }}</i></p>
+  <p>Frequency range: <i>{{ getFrequencyRange() }}</i></p>
+  <h2>Memory</h2>
+  <p>Available: <i>{{ formatMemory(agent.memory.total) }}</i></p>
+  <p>Swap: <i>{{ formatMemory(agent.memory.swap) }}</i></p>
+} @else {
+  <app-spinner></app-spinner>
+}

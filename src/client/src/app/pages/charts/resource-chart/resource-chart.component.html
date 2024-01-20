@@ -8,7 +8,7 @@
         <app-chart-type-select></app-chart-type-select>
         <app-aggregation-type-select></app-aggregation-type-select>
         @if (data.params.chartType === 'cpuUsage') {
-          <app-cpu-core-select [cpuCoreCount]="data.agent.cpuLogicalCount"></app-cpu-core-select>
+          <app-cpu-core-select [cpuCoreCount]="data.agent.cpu.logicalCount"></app-cpu-core-select>
         }
         @if (data.params.chartType === 'memoryUsage' || data.params.chartType === 'memoryAvailable') {
           <app-memory-type-toggle></app-memory-type-toggle>

@@ -23,3 +23,7 @@
   align-items: center;
   min-width: 400px;
 }
+
+@mixin screen-padding {
+  padding: 20px 20px;
+}

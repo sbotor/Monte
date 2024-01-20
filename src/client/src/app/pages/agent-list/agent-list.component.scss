@@ -1,5 +1,27 @@
+@use 'mixins' as mix;
+
 :host {
+  width: 100%;
+  height: 100%;
+}
+
+.sidenav-container {
+  height: 100%;
+  width: 100%;
+}
+
+.content-container {
+  @include mix.flex-col;
+  align-items: center;
+}
+
+.content {
   min-width: 80%;
+  @include mix.screen-padding;
+}
+
+.sidenav {
+  min-width: 400px;
 }
 
 .mat-mdc-row .mat-mdc-cell {

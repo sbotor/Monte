@@ -17,20 +17,19 @@ public static class GetAgentDetails
         {
             _dbContext = dbContext;
         }
-        
+
         public async Task<AgentDetails> Handle(Query request, CancellationToken cancellationToken)
         {
-            var machine = await _dbContext.Agents.AsNoTracking()
+            var agent = await _dbContext.Agents.AsNoTracking()
                 .Include(x => x.Cpu)
                 .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken)
                 ?? throw new NotFoundException();
 
-            return new()
-            {
-                Id = machine.Id,
-                DisplayName = machine.DisplayName,
-                CpuLogicalCount = machine.Cpu.LogicalCount
-            };
+            return new(agent.Id,
+                agent.HeartbeatDateTime,
+                agent.DisplayName,
+                agent.Cpu,
+                agent.Memory);
         }
     }
 }

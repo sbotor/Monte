@@ -1,21 +1,30 @@
-import { Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { BehaviorSubject, Subject, takeUntil } from 'rxjs';
 import {
+  AgentDetails,
   AgentOverview,
   AgentsService,
 } from '@features/agents/agents.service';
 import { PagingInfo } from '@core/models';
 import { SpinnerComponent } from '@components/spinner';
-import { Router } from '@angular/router';
+import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
+import { AgentDetailsDrawerComponent } from '@features/agents/agent-details-drawer/agent-details-drawer.component';
 
 @Component({
   selector: 'app-agent-list',
   standalone: true,
-  imports: [CommonModule, SpinnerComponent, MatTableModule, MatPaginatorModule],
+  imports: [
+    CommonModule,
+    SpinnerComponent,
+    MatTableModule,
+    MatPaginatorModule,
+    MatSidenavModule,
+    AgentDetailsDrawerComponent,
+  ],
   templateUrl: './agent-list.component.html',
   styleUrl: './agent-list.component.scss',
 })
@@ -25,8 +34,15 @@ export class AgentListComponent implements OnInit, OnDestroy {
   private readonly _agents = new BehaviorSubject<AgentOverview[]>([]);
   public readonly agents$ = this._agents.asObservable();
 
+  private readonly _agentDetails = new BehaviorSubject<AgentDetails | null>(
+    null
+  );
+  public readonly agentDetails$ = this._agentDetails.asObservable();
+
   private readonly _isLoading = signal(true);
   public readonly isLoading = this._isLoading.asReadonly();
+
+  @ViewChild('sidenav') public readonly sidenav: MatSidenav = null!;
 
   private readonly _pagingInfo = signal<PagingInfo>({
     page: 0,
@@ -38,7 +54,7 @@ export class AgentListComponent implements OnInit, OnDestroy {
 
   public readonly columns = ['displayName', 'id', 'lastHeartbeat', 'created'];
 
-  constructor(private readonly api: AgentsService, private readonly router: Router) {}
+  constructor(private readonly api: AgentsService) {}
 
   ngOnDestroy(): void {
     this.destroyed$.next();
@@ -60,7 +76,21 @@ export class AgentListComponent implements OnInit, OnDestroy {
   }
 
   public onClickedRow(id: string) {
-    this.router.navigate(['agents', id, 'chart']);
+    if (this._agentDetails.value?.id === id) {
+      return;
+    }
+
+    this._agentDetails.next(null);
+    this.sidenav.open();
+
+    this.api
+      .getAgentDetails(id)
+      .pipe(takeUntil(this.destroyed$))
+      .subscribe((x) => this._agentDetails.next(x));
+  }
+
+  public onSidenavClosed() {
+    this._agentDetails.next(null);
   }
 
   private fetchData() {

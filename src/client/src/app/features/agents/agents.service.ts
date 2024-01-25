@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { ApiService } from '@core/api.service';
 import { PagedResponse } from '@core/models';
 
+export type AgentSorting = 'LastHeartbeat' | 'Created' | 'Name';
+
 export interface AgentOverview {
   id: string;
   displayName: string;
@@ -12,8 +14,9 @@ export interface AgentOverview {
 export interface GetAgentsRequest {
   page: number;
   pageSize: number;
-  orderBy?: string;
+  orderBy: AgentSorting | null;
   orderByDesc: boolean;
+  text: string | null;
 }
 
 export interface AgentDetails {

@@ -3,16 +3,27 @@ import { CommonModule } from '@angular/common';
 
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { BehaviorSubject, Subject, takeUntil } from 'rxjs';
+import { BehaviorSubject, Subject, debounceTime, distinctUntilChanged, fromEvent, takeUntil } from 'rxjs';
 import {
   AgentDetails,
   AgentOverview,
+  AgentSorting,
   AgentsService,
+  GetAgentsRequest,
 } from '@features/agents/agents.service';
-import { PagingInfo } from '@core/models';
+import { PagingInfo, Sorting } from '@core/models';
 import { SpinnerComponent } from '@components/spinner';
 import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
 import { AgentDetailsDrawerComponent } from '@features/agents/agent-details-drawer/agent-details-drawer.component';
+import { MatInputModule } from '@angular/material/input';
+import { MatIconModule } from '@angular/material/icon';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { MatSortModule, Sort } from '@angular/material/sort';
+
+interface Data {
+  agents: AgentOverview[];
+  isLoading: boolean;
+}
 
 @Component({
   selector: 'app-agent-list',
@@ -24,6 +35,10 @@ import { AgentDetailsDrawerComponent } from '@features/agents/agent-details-draw
     MatPaginatorModule,
     MatSidenavModule,
     AgentDetailsDrawerComponent,
+    MatInputModule,
+    MatIconModule,
+    ReactiveFormsModule,
+    MatSortModule
   ],
   templateUrl: './agent-list.component.html',
   styleUrl: './agent-list.component.scss',
@@ -31,18 +46,21 @@ import { AgentDetailsDrawerComponent } from '@features/agents/agent-details-draw
 export class AgentListComponent implements OnInit, OnDestroy {
   private readonly destroyed$ = new Subject<void>();
 
-  private readonly _agents = new BehaviorSubject<AgentOverview[]>([]);
-  public readonly agents$ = this._agents.asObservable();
+  private readonly _data = new BehaviorSubject<Data>({ agents: [], isLoading: true });
+  public readonly data$ = this._data.asObservable();
 
   private readonly _agentDetails = new BehaviorSubject<AgentDetails | null>(
     null
   );
   public readonly agentDetails$ = this._agentDetails.asObservable();
 
-  private readonly _isLoading = signal(true);
-  public readonly isLoading = this._isLoading.asReadonly();
+  @ViewChild('sidenav') public sidenav: MatSidenav = null!;
 
-  @ViewChild('sidenav') public readonly sidenav: MatSidenav = null!;
+  public readonly searchBar = new FormControl('');
+  private textFilter = '';
+
+  private _sorting: Sorting<AgentSorting> = { orderBy: null, orderByDesc: false };
+  public sorting: Sort = { active: '', direction: 'asc' };
 
   private readonly _pagingInfo = signal<PagingInfo>({
     page: 0,
@@ -63,6 +81,13 @@ export class AgentListComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.fetchData();
+
+    this.searchBar.valueChanges
+      .pipe(takeUntil(this.destroyed$), debounceTime(300), distinctUntilChanged())
+      .subscribe(x => {
+        this.textFilter = x || '';
+        this.fetchData();
+      });
   }
 
   public onPageChange(event: PageEvent) {
@@ -93,23 +118,50 @@ export class AgentListComponent implements OnInit, OnDestroy {
     this._agentDetails.next(null);
   }
 
+  public onSortChange(event: Sort) {
+    console.log(event);
+
+    const orderByDesc = event.direction === 'desc';
+    let orderBy: AgentSorting | null;
+
+    switch (event.active) {
+      case 'displayName':
+        orderBy = 'Name';
+        break;
+      case 'lastHeartbeat':
+        orderBy = 'LastHeartbeat';
+        break;
+      case 'created':
+        orderBy = 'Created';
+        break;
+      default:
+        orderBy = null;
+        break;
+    }
+
+    this._sorting = { orderBy, orderByDesc };
+    this.sorting = { ...event };
+
+    this.fetchData();
+  }
+
   private fetchData() {
     const paging = this.pagingInfo();
-    const params = {
+    const params: GetAgentsRequest = {
       page: paging.page,
       pageSize: paging.pageSize,
-      orderByDesc: false,
+      orderByDesc: this._sorting.orderByDesc,
+      orderBy: this._sorting.orderBy,
+      text: this.textFilter
     };
 
-    this._isLoading.set(true);
+    this._data.next({ agents: [], isLoading: true });
     this.api
       .getAgents(params)
       .pipe(takeUntil(this.destroyed$))
       .subscribe((x) => {
-        this._agents.next(x.items);
         this._pagingInfo.set({ ...x });
-
-        this._isLoading.set(false);
+        this._data.next({ agents: x.items, isLoading: false });
       });
   }
 }

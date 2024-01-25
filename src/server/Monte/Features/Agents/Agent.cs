@@ -9,13 +9,15 @@ public class Agent
     public Guid Id { get; set; } = Guid.NewGuid();
     public string Name { get; set; } = null!;
     public int OrdinalNumber { get; set; }
+    public string DisplayName { get; set; } = string.Empty;
     public DateTime CreatedDateTime { get; set; }
     public DateTime HeartbeatDateTime { get; set; }
     public string MetricsKey { get; set; } = null!;
     public CpuInfo Cpu { get; set; } = null!;
     public MemoryInfo Memory { get; set; } = null!;
 
-    public string DisplayName => $"{Name} #{OrdinalNumber}";
+    public void UpdateDisplayName()
+        => DisplayName = $"{Name} #{OrdinalNumber}";
     
     public class CpuInfo
     {
@@ -53,6 +55,7 @@ internal class AgentEntityConfiguration : IEntityTypeConfiguration<Agent>
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Name).HasMaxLength(Length.AgentName.Max);
         builder.Property(x => x.MetricsKey).HasMaxLength(Length.MetricsKey.Exact);
+        builder.Property(x => x.DisplayName).HasMaxLength(Length.AgentName.DisplayNameMax);
 
         builder.OwnsOne(x => x.Cpu);
         builder.OwnsOne(x => x.Memory);

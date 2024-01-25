@@ -33,3 +33,13 @@
 .mat-mdc-row:hover .mat-mdc-cell {
   border-color: currentColor;
 }
+
+.header {
+  @include mix.flex-row;
+  justify-content: space-between;
+}
+
+.search-bar {
+  max-width: 500px;
+  width: 100%;
+}

@@ -61,6 +61,7 @@ public class UpsertAgentCommandHandlerTests : DbTests
         
         Assert.Equal(origin, agent.Name);
         Assert.Equal(expectedOrdinal, agent.OrdinalNumber);
+        Assert.Equal($"{origin} #{expectedOrdinal}", agent.DisplayName);
     }
 
     [Theory]
@@ -87,6 +88,7 @@ public class UpsertAgentCommandHandlerTests : DbTests
         
         Assert.Equal(existing.Name, agent.Name);
         Assert.Equal(0, agent.OrdinalNumber);
+        Assert.Equal($"{existing.Name} #{existing.OrdinalNumber}", agent.DisplayName);
     }
 
     [Fact]

@@ -8,7 +8,11 @@ namespace Monte.Features.Agents.Queries;
 
 public static class GetAgents
 {
-    public record Query(Paging Paging, Sorting Sorting) : IRequest<PagedResponse<AgentOverview>>;
+    public record Query(
+        Paging Paging,
+        Sorting<AgentSorting> Sorting,
+        string? TextFilter)
+        : IRequest<PagedResponse<AgentOverview>>;
 
     internal class Handler : IRequestHandler<Query, PagedResponse<AgentOverview>>
     {
@@ -21,6 +25,8 @@ public static class GetAgents
 
         public Task<PagedResponse<AgentOverview>> Handle(Query request, CancellationToken cancellationToken)
             => Order(_context.Agents.AsNoTracking(), request.Sorting)
+                .Where(x => x.Name.Contains(request.TextFilter!),
+                    !string.IsNullOrEmpty(request.TextFilter))
                 .Select(x => new AgentOverview
                 {
                     Id = x.Id,
@@ -30,12 +36,15 @@ public static class GetAgents
                 })
                 .PaginateAsync(request.Paging, cancellationToken);
 
-        private static IOrderedQueryable<Agent> Order(IQueryable<Agent> query, Sorting sorting)
+        private static IOrderedQueryable<Agent> Order(IQueryable<Agent> query, Sorting<AgentSorting> sorting)
             => sorting.Value switch
             {
-                "lastHeartbeat" => query.OrderBy(x => x.HeartbeatDateTime),
-                "created" => query.OrderBy(x => x.CreatedDateTime),
-                _ => query.OrderBy(x => x.Name).ThenBy(x => x.OrdinalNumber)
+                AgentSorting.LastHeartbeat => query.OrderBy(x => x.HeartbeatDateTime, sorting.Descending),
+                AgentSorting.Created => query.OrderBy(x => x.CreatedDateTime, sorting.Descending),
+                AgentSorting.Name => query.OrderBy(x => x.Name, sorting.Descending)
+                    .ThenBy(x => x.OrdinalNumber, sorting.Descending),
+                _ => query.OrderBy(x => x.Name, sorting.Descending)
+                    .ThenBy(x => x.OrdinalNumber, sorting.Descending)
             };
     }
 }

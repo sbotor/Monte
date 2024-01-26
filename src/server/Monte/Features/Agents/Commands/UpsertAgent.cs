@@ -59,6 +59,7 @@ public static class UpsertAgent
                 Cpu = new(),
                 Memory = new()
             };
+            agent.UpdateDisplayName();
             
             agent.Cpu.Update(command.Cpu);
             agent.Memory.Update(command.Memory);
@@ -76,6 +77,7 @@ public static class UpsertAgent
                 .FirstOrDefaultAsync(x => x.Id == id)
                 ?? throw new NotFoundException();
 
+            agent.UpdateDisplayName();
             agent.HeartbeatDateTime = _clock.UtcNow;
             agent.Cpu.Update(command.Cpu);
             agent.Memory.Update(command.Memory);

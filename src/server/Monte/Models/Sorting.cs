@@ -1,15 +1,16 @@
 ﻿namespace Monte.Models;
 
-public class Sorting
+public class Sorting<TSorting>
+    where TSorting : struct, Enum
 {
-    public string? Value { get; set; }
+    public TSorting? Value { get; set; }
     public bool Descending { get; set; }
 
     public Sorting()
     {
     }
 
-    public Sorting(string? value, bool descending)
+    public Sorting(TSorting? value, bool descending)
     {
         Value = value;
         Descending = descending;

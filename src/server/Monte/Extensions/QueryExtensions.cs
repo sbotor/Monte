@@ -12,6 +12,13 @@ public static class QueryExtensions
         => descending
             ? query.OrderByDescending(expression)
             : query.OrderBy(expression);
+    
+    public static IOrderedQueryable<TEntity> ThenBy<TEntity, TProp>(this IOrderedQueryable<TEntity> query,
+        Expression<Func<TEntity, TProp>> expression,
+        bool descending)
+        => descending
+            ? query.ThenByDescending(expression)
+            : query.ThenBy(expression);
 
     public static async Task<PagedResponse<T>> PaginateAsync<T>(this IQueryable<T> query,
         Paging paging,

@@ -79,8 +79,7 @@ public class AuthSetupWorker : IHostedService
 
     private static async Task EnsureAdmin(IUserService userService)
     {
-        var result = await userService.CreateUser(new() { Username = "admin", Password = "admin@DM1N" },
-            AuthConsts.Roles.MonteAdmin);
+        var result = await userService.EnsureAdmin("admin", "admin@DM1N");
 
         if (result.ErrType != ErrorType.None)
         {

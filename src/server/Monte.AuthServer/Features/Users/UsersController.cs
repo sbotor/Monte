@@ -29,7 +29,7 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateUser(CreateUserRequest request)
     {
-        var result = await _userService.CreateUser(request, AuthConsts.Roles.MonteUser);
+        var result = await _userService.CreateUser(request);
         return result.ToActionResult();
     }
 

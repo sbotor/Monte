@@ -1,7 +1,8 @@
 import logging
 import logging.handlers
 import yaml
-from pathlib import Path
+from pathlib import Path, PosixPath, WindowsPath
+from sys import platform
 
 LOGGING_FORMAT = '%(asctime)s %(levelname)s %(message)s'
 
@@ -26,7 +27,7 @@ def configure_logger(config_file: str):
     rootLogger.setLevel(logLevel)
 
     path = config['logs_path']
-    Path(path).mkdir(parents=True, exist_ok=True)
+    path = resolve_path(path)
 
     fileHandler = logging.handlers.TimedRotatingFileHandler(
         filename= f"{path}/log",
@@ -39,5 +40,16 @@ def configure_logger(config_file: str):
     
     consoleHandler = logging.StreamHandler()
     consoleHandler.setFormatter(formatter)
-    rootLogger.addHandler(consoleHandler)   
+    rootLogger.addHandler(consoleHandler)
+
+def resolve_path(path):
+    if platform == "linux" or platform == "linux2":
+        path = PosixPath(path).expanduser()
+    elif platform == "win32":
+        path = WindowsPath(path).expanduser()
+    else:
+        raise OSError(f"Unsupported platform: {platform}")
+    
+    path.mkdir(parents=True, exist_ok=True)
+    return path.absolute()
 

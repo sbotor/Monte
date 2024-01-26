@@ -1,6 +1,8 @@
 import asyncio
 import aiohttp
 import logging
+import argparse
+import os
 
 from monte_client import MonteClient, AuthClient
 from config import create_config, validate_config
@@ -34,6 +36,11 @@ async def run(api: MonteClient, config):
     
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Pass arguments to the monte agent')
+    parser.add_argument('--config', type=str, help='Select environment from config.yaml - production or development', required=False)
+    ENVIRONMENT = parser.parse_args().config or ENVIRONMENT
+    print(os.getcwd())
+
     try:
         asyncio.run(main())
     finally:

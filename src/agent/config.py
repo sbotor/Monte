@@ -30,7 +30,7 @@ def validate_config(config: 'Config'):
     return
 
 class Config:
-    def __init__(self, config_dict: dict[str]):
+    def __init__(self, config_dict: 'dict[str]'):
         self._config = config_dict
         self._id = None
 

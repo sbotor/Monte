@@ -16,7 +16,7 @@ class SystemInfo(TypedDict):
     memory: MemoryInfo
 
 class CpuUsage(TypedDict):
-    percentsUsed: list[float]
+    percentsUsed: 'list[float]'
     load: float
 
 class MemoryUsage(TypedDict):

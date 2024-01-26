@@ -12,6 +12,6 @@ public class AppUserRole : IdentityUserRole<string>
     public AppRole Role { get; set; } = null!;
 }
 
-public class AppRole : IdentityRole<string>
+public class AppRole : IdentityRole
 {
 }

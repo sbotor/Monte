@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { UserRole } from '@auth/roles';
-import { environment } from 'environments/environment.development';
+import { environment } from 'environments/environment';
 
 export interface UserDetails {
   id: string;

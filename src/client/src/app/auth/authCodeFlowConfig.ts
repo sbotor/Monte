@@ -1,5 +1,5 @@
-import { AuthConfig } from "angular-oauth2-oidc"
-import { environment } from "environments/environment.development"
+import { AuthConfig } from 'angular-oauth2-oidc';
+import { environment } from 'environments/environment';
 
 export const authCodeFlowConfig: AuthConfig = {
   issuer: environment.authRootUrl,
@@ -7,5 +7,6 @@ export const authCodeFlowConfig: AuthConfig = {
   clientId: 'monte_client',
   responseType: 'code',
   scope: 'openid roles profile monte_main_api',
-  showDebugInformation: true,
-}
+  showDebugInformation: environment.isProduction,
+  requireHttps: environment.requireAuthHttp
+};

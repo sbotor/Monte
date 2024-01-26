@@ -23,18 +23,6 @@ public class UsersController : ControllerBase
         _userService = userService;
     }
 
-    // TODO: this should somehow be done at the first startup.
-    // Maybe the admin should be seeded with a default pass and cannot be deleted?
-    [HttpPost("root")]
-    [AllowAnonymous]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> CreateRootAdmin(CreateUserRequest request)
-    {
-        var result = await _userService.CreateUser(request, AuthConsts.Roles.MonteAdmin);
-        return result.ToActionResult();
-    }
-
     [HttpPost]
     [Authorize(Roles = AuthConsts.Roles.MonteAdmin)]
     [ProducesResponseType(StatusCodes.Status201Created)]

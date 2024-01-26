@@ -28,11 +28,15 @@ public class UserService : IUserService
     {
         if (role == AuthConsts.Roles.MonteAdmin)
         {
-            if ((await _userManager.GetUsersInRoleAsync(AuthConsts.Roles.MonteAdmin)).Any())
+            var admins = await _userManager.GetUsersInRoleAsync(AuthConsts.Roles.MonteAdmin);
+            if (admins.Count > 0)
             {
-                return Result.Failure<UserDetails>(
-                    ErrorType.BadRequest,
-                    "Couldn't create admin, because an admin already exists in the system.");
+                var adminDetails = new UserDetails
+                {
+                    Id = admins[0].Id, Name = admins[0].UserName!, Role = AuthConsts.Roles.MonteAdmin
+                };
+
+                return Result.Success(adminDetails);
             }
         }
 

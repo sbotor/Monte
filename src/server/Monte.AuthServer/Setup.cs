@@ -21,10 +21,7 @@ internal static class Setup
         
         services.AddIdentity();
 
-        var tokenSettings = config.GetSection(nameof(TokenSettings)).Get<TokenSettings>()
-            ?? throw new InvalidOperationException("Token settings not found.");
-
-        services.ConfigureOpenIddict(tokenSettings);
+        services.ConfigureOpenIddict(config);
         
         services.ConfigureApplicationCookie(x =>
         {
@@ -50,8 +47,11 @@ internal static class Setup
             .AddEntityFrameworkStores<AuthDbContext>();
 
     private static void ConfigureOpenIddict(this IServiceCollection services,
-        TokenSettings settings)
+        IConfiguration config)
     {
+        var settings = config.GetSection(nameof(TokenSettings)).Get<TokenSettings>()
+            ?? throw new InvalidOperationException("Token settings not found.");
+        
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.SigningKey));
         
         services.AddOpenIddict()
@@ -85,11 +85,15 @@ internal static class Setup
                     .ToArray();
                 x.RegisterScopes(scopes);
 
-                x.UseAspNetCore()
+                var aspNetCoreBuilder = x.UseAspNetCore()
                     .EnableAuthorizationEndpointPassthrough()
                     .EnableTokenEndpointPassthrough()
                     .EnableLogoutEndpointPassthrough();
-                // .EnableUserinfoEndpointPassthrough();
+
+                if (bool.TryParse(config["AllowHttp"], out var allowHttp) && allowHttp)
+                {
+                    aspNetCoreBuilder.DisableTransportSecurityRequirement();
+                }
             })
             .AddValidation(x =>
             {

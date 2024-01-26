@@ -119,8 +119,6 @@ export class AgentListComponent implements OnInit, OnDestroy {
   }
 
   public onSortChange(event: Sort) {
-    console.log(event);
-
     const orderByDesc = event.direction === 'desc';
     let orderBy: AgentSorting | null;
 

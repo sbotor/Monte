@@ -5,6 +5,8 @@ using Monte.AuthServer.Configuration;
 using Monte.AuthServer.Data;
 using Monte.AuthServer.Extensions;
 using Monte.AuthServer.Helpers;
+using Monte.AuthServer.Models;
+using Monte.AuthServer.Services;
 using OpenIddict.Abstractions;
 
 namespace Monte.AuthServer;
@@ -21,8 +23,9 @@ public class AuthSetupWorker : IHostedService
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         using var scope = _serviceProvider.CreateScope();
+        var services = scope.ServiceProvider;
 
-        var context = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
+        var context = services.GetRequiredService<AuthDbContext>();
         await context.Database.MigrateAsync(cancellationToken);
 
         var authSettings = _serviceProvider.GetRequiredService<IOptions<AuthSettings>>().Value;
@@ -30,7 +33,8 @@ public class AuthSetupWorker : IHostedService
 
         await PopulateScopes(scope, cancellationToken);
         await PopulateApps(scope, authSettings, appSettings, cancellationToken);
-        await PopulateRoles(scope.ServiceProvider.GetRequiredService<RoleManager<AppRole>>());
+        await PopulateRoles(services.GetRequiredService<RoleManager<AppRole>>());
+        await EnsureAdmin(services.GetRequiredService<IUserService>());
     }
 
     private static async Task PopulateScopes(IServiceScope scope, CancellationToken cancellationToken)
@@ -61,11 +65,26 @@ public class AuthSetupWorker : IHostedService
     {
         var admin = await manager.FindByNameAsync(AuthConsts.Roles.MonteAdmin);
         var user = await manager.FindByNameAsync(AuthConsts.Roles.MonteUser);
-        
-        if(user == null)
+
+        if (user == null)
+        {
             await manager.CreateAsync(new() { Name = AuthConsts.Roles.MonteUser });
-        if(admin == null)
-            await manager.CreateAsync(new() { Name = AuthConsts.Roles.MonteAdmin });        
+        }
+
+        if (admin == null)
+        {
+            await manager.CreateAsync(new() { Name = AuthConsts.Roles.MonteAdmin });
+        }
+    }
+
+    private static async Task EnsureAdmin(IUserService userService)
+    {
+        var result = await userService.EnsureAdmin("admin", "admin@DM1N");
+
+        if (result.ErrType != ErrorType.None)
+        {
+            throw new InvalidOperationException($"Could not create admin. Error: '{result.ErrorMessage}'");
+        }
     }
 
     public Task StopAsync(CancellationToken cancellationToken)

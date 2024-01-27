@@ -1,0 +1,58 @@
+name: 'monte'
+
+services:
+  monte-api:
+    image: monte-api
+    build:
+      context: server
+      dockerfile: Monte.WebApi/Dockerfile
+    ports:
+      - 7480:80
+    depends_on:
+      - monte-psql
+      - monte-auth
+    networks:
+      - back-tier
+      - front-tier
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+
+  monte-auth:
+    image: monte-auth
+    build:
+      context: server
+      dockerfile: Monte.AuthServer/Dockerfile
+    depends_on:
+      - monte-psql
+    ports:
+      - 7481:80
+    networks:
+      - back-tier
+      - front-tier
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+
+  monte-client:
+    image: monte-client
+    build:
+      context: client
+    ports:
+      - 42000:80
+    depends_on:
+      - monte-auth
+      - monte-api
+    networks:
+      - front-tier
+
+  monte-psql:
+    image: postgres
+    ports:
+      - 6543:5432
+    environment:
+      POSTGRES_PASSWORD: postgres
+    networks:
+      - back-tier
+
+networks:
+  back-tier: {}
+  front-tier: {}

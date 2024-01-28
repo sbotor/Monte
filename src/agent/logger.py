@@ -28,7 +28,6 @@ def configure_logger(config_file: str):
 
     path = config['logs_path']
     path = resolve_path(path)
-    print(path)
 
     fileHandler = logging.handlers.TimedRotatingFileHandler(
         filename= f"{path}/log",

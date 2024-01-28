@@ -5,15 +5,16 @@ defaults:
   name: 'test-agent'
   reporting_period: 5
   enable_ssl: false
+  resources_path: '~/monte-agent'
 environments:
   production:
-    auth_url: 'https://localhost:7049'
-    api_url: 'https://localhost:7048'
-    enable_ssl: true
+    auth_url: 'http://localhost:7481'
+    api_url: 'http://localhost:7480'
+    enable_ssl: false
+    client_secret: 'XvfsWzV0Sv7Zuog8xZyl'
   development:
     auth_url: 'https://localhost:7049'
     api_url: 'https://localhost:7048'
 logger:
   #Log levels: DEBUG, INFO, WARNING, ERROR, CRITICAL, NONE
   log_level: 'DEBUG'
-  logs_path: '~/monte-agent'

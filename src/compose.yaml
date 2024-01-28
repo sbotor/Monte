@@ -50,6 +50,7 @@ services:
       - 6543:5432
     environment:
       POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: Monte
     networks:
       - back-tier
 

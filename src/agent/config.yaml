@@ -16,4 +16,4 @@ environments:
 logger:
   #Log levels: DEBUG, INFO, WARNING, ERROR, CRITICAL, NONE
   log_level: 'DEBUG'
-  logs_path: './logs'
+  logs_path: '~/monte-agent'

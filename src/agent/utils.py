@@ -11,7 +11,7 @@ def store_agent_id(value: str):
         f.write(value)
         f.write('\n')
 
-def read_agent_id() -> str | None:
+def read_agent_id() -> 'str | None':
     if not os.path.exists(_AGENT_ID_FILENAME):
         return None
 

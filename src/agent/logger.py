@@ -28,13 +28,13 @@ def configure_logger(config_file: str):
 
     path = config['logs_path']
     path = resolve_path(path)
+    print(path)
 
     fileHandler = logging.handlers.TimedRotatingFileHandler(
         filename= f"{path}/log",
         backupCount=30,
         utc=True,
-        when='midnight'
-          )
+        when='midnight')
     fileHandler.setFormatter(formatter)
     rootLogger.addHandler(fileHandler)
     
@@ -46,7 +46,7 @@ def resolve_path(path):
     if platform == "linux" or platform == "linux2":
         path = PosixPath(path).expanduser()
     elif platform == "win32":
-        path = WindowsPath(path).expanduser()
+        path = WindowsPath("C:\\ProgramData\\Monte")
     else:
         raise OSError(f"Unsupported platform: {platform}")
     

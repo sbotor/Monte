@@ -131,7 +131,7 @@ class MonteClient:
         id = response['agentId']
         if id != self._id:
             self._id = id
-            utils.store_agent_id(self._id)
+            utils.store_agent_id(self._config.resources_path, self._id)
 
         self._metrics_key = response['metricsKey']
         

@@ -4,7 +4,7 @@ import logging
 import argparse
 
 from monte_client import MonteClient, AuthClient
-from config import create_config, validate_config
+from config import create_config
 from logger import configure_logger
 
 
@@ -22,10 +22,9 @@ def main(params: Params):
         logging.getLogger().info("Exiting program.\n")
 
 async def _main(params: Params):
-    configure_logger(CONFIG_FILE)
-
     config = create_config(CONFIG_FILE, params.env_name)
-    validate_config(config)
+
+    configure_logger(config)
 
     async with aiohttp.ClientSession(config.auth_url) as auth_session:
         auth_client = AuthClient(auth_session, config)

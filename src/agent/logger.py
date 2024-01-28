@@ -1,33 +1,27 @@
 import logging
 import logging.handlers
-import yaml
-from pathlib import Path, PosixPath, WindowsPath
-from sys import platform
+from pathlib import Path
+
+from config import Config
 
 LOGGING_FORMAT = '%(asctime)s %(levelname)s %(message)s'
 
 VALID_LEVELS = ['DEBUG', 'INFO', 'WARING', 'ERROR', 'CRITICAL']
-
-def _read_config(config_file):
-     with open(config_file, 'r') as stream:
-        config = yaml.safe_load(stream)
-        return config['logger']
-
      
-def configure_logger(config_file: str):
-    config = _read_config(config_file)
+def configure_logger(config: Config):
     formatter = logging.Formatter(LOGGING_FORMAT)
     rootLogger = logging.getLogger()
 
-    logLevel = config['log_level'].upper()
+    logging_config = config.raw_config['logger']
+    logLevel = logging_config['log_level'].upper()
 
-    if(logLevel not in VALID_LEVELS):
-        return
+    if logLevel not in VALID_LEVELS:
+        raise ValueError('Invalid logging level')
 
     rootLogger.setLevel(logLevel)
 
-    path = config['logs_path']
-    path = resolve_path(path)
+    path = config.resources_path + '/logs'
+    Path(path).mkdir(parents=True, exist_ok=True)
 
     fileHandler = logging.handlers.TimedRotatingFileHandler(
         filename= f"{path}/log",
@@ -40,15 +34,3 @@ def configure_logger(config_file: str):
     consoleHandler = logging.StreamHandler()
     consoleHandler.setFormatter(formatter)
     rootLogger.addHandler(consoleHandler)
-
-def resolve_path(path):
-    if platform == "linux" or platform == "linux2":
-        path = PosixPath(path).expanduser()
-    elif platform == "win32":
-        path = WindowsPath("C:\\ProgramData\\Monte")
-    else:
-        raise OSError(f"Unsupported platform: {platform}")
-    
-    path.mkdir(parents=True, exist_ok=True)
-    return path.absolute()
-

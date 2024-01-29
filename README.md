@@ -43,3 +43,28 @@ The client config can be found in `client/environments/environment.docker.ts`:
 
 #### Compose
 All of the above components are connected via the Docker Compose configuration. Docker port mapping can be configured here, as well as environment variables can be modified or added to the ASP.NET Core-based projects. PostgreSQL can also be configured here. More information can be found [here](https://docs.docker.com/compose/compose-file/).
+
+## Agent
+Agent that communicates with the server can be found in `agent` directory. It is written in Python and monitors resources of the machine. To achieve consistent resources monitoring, it is advised that the agent be run as a service, which will be discussed in the next section. Before starting the service, you probably want to take a look at `config.yaml` in the `agent` directory. To avoid confusion, the **reporting period** field sets the reporting time in *seconds*. To run the script itself, it is enough to do `python ./main.py`. However you can choose your desired configuration by using the config switch, so you can run `python ./main.py --config development`, or whatever you defined in config.yaml. By default, the agent run as a service will use the production configuration, however, that can be changed in the scripts.
+### Installation
+The agent can be run as a service on systemd-based GNU/Linux and Windows operating systems, but there are important changes as to how to start them.
+#### Systemd
+You just run raas_systemd.sh and it works. Nah, not really but this isn't too far from the truth.
+
+1. Create Python venv and install requirements.
+2. Run `raas_systemd.sh` from `scripts` directory(it needs administrator access but the service itself is not run as a root)
+3. The script copies relevant directories and files to `/usr/local/share/Monte`. To verify that it really does work, you can check out the `/home/user/monte/logs`. There should be a log file that describes what the service is currently doing.
+
+To change `config.yaml`, find it and edit it in the `/usr/local/share/Monte` directory. When you are done, use `systemctl restart monte` to restart the service.
+
+To uninstall the service you can do `systemctl stop monte` followed by `systemctl disable monte`. Finally you can do `systemctl daemon-reload`, `systemctl reset-failed` and delete `monte.service` and the `/usr/local/share/Monte` directory. 
+
+#### Windows 
+1. Get the release from GitHub. It is conveniently named monte_windows. Unzip it.
+2. Open your PowerShell session as an administrator.
+3. Give your session the ability to run scripts from the outside. Run `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`
+4. Run script from whereever you unzipped the scripts. It uses nssm.exe to run the agent as a service.
+5. Assuming that there weren't any errors, you should be able to see `Agent for Monte` in the Windows services browser. 
+6. All files relevant to the service are stored in `C:\ProgramData\Monte`. There should be a `logs` directory, if logs are present, service is (or was) running.
+
+To uninstall the service you can open cmd as an administrator and run `sc stop monteagent` and `sc delete monteagent`. Windows will delete the service sometime. Maybe.

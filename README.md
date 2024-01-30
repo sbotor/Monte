@@ -68,3 +68,14 @@ To uninstall the service you can do `systemctl stop monte` followed by `systemct
 6. All files relevant to the service are stored in `C:\ProgramData\Monte`. There should be a `logs` directory, if logs are present, service is (or was) running.
 
 To uninstall the service you can open cmd as an administrator and run `sc stop monteagent` and `sc delete monteagent`. Windows will delete the service sometime. Maybe.
+
+# Usage
+None of the individual parts of the whole system have any interaction in the console. Behaviour can only be controlled by the respective config files. 
+
+After the whole system is deployed and some machines have successfully started the MonteAgent service you can monitor the system in the client server, which is an angular application hosted on http://localhost:42000 (if deployed on docker). 
+
+Upon entering you will see a login page. By default there is only one user with username `admin` and password `admin@DM1N`. After logging in you will see a list of agents ergo machines that have the MonteAgent service. Clicking on a agent on the list shows a detailed information of the machine's specification. The information has a button in the up right corner directing to charts. That page allows you to see the change in time of parameters of the choosen machine with different modes of data aggregation. The parameters that can be watched are: CPU usage (as a whole and as a single logical core), CPU load, memory usage and availability. The memory can be seen as regular memory or swap memory.
+
+If you are logged in as an admin you have also the possibility to manage users. To do so, go to the `Users` tab in the navbar. There you can see a list of all users including yourself. On that page you can add a new user, delete a user or after clicking on the `Manage` button on a user you can change their username and password. 
+A regular user can also change their username and password by clicking on their username on the right side of the navbar. 
+One thing, that should be noted, is that only one admin can exist in the system and the admin cannot be removed.

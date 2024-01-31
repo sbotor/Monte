@@ -23,6 +23,8 @@ public class Login : PageModel
     [FromForm]
     [Required]
     public string Password { get; set; } = null!;
+
+    public bool GoogleValid { get; private set; }
     
     public Login(
         UserManager<AppUser> userManager,
@@ -36,6 +38,8 @@ public class Login : PageModel
     
     public IActionResult OnGet()
     {
+        GoogleValid = _settings.Google.IsValid();
+        
         return Page();
     }
 

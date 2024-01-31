@@ -18,19 +18,19 @@ internal static class Setup
             x.UseNpgsql(config.GetConnectionString("Default"));
             x.UseOpenIddict();
         });
-        
+
         services.AddIdentity();
 
         services.ConfigureOpenIddict(config);
-        
+
         services.ConfigureApplicationCookie(x =>
         {
             x.LoginPath = "/Login";
         });
-        
+
         services.Configure<AuthSettings>(config.GetSection(nameof(AuthSettings)));
         services.Configure<OidcAppSettings>(config.GetSection(nameof(OidcAppSettings)));
-        
+
         services.AddHostedService<AuthSetupWorker>();
 
         services.AddScoped<IUserContext, UserContext>();
@@ -50,16 +50,16 @@ internal static class Setup
         IConfiguration config)
     {
         var tokenSettings = config.GetSection(nameof(TokenSettings)).Get<TokenSettings>()
-            ?? throw new InvalidOperationException("Token settings not found.");
-        
+                            ?? throw new InvalidOperationException("Token settings not found.");
+
         var authSettings = config.GetSection(nameof(AuthSettings)).Get<AuthSettings>()
-            ?? throw new InvalidOperationException("Auth settings not found.");
+                           ?? throw new InvalidOperationException("Auth settings not found.");
 
         var allowHttp = bool.TryParse(config["AllowHttp"], out var allowHttpValue) && allowHttpValue;
-        
+
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenSettings.SigningKey));
-        
-        services.AddOpenIddict()
+
+        var oidcBuilder = services.AddOpenIddict()
             .AddCore(x =>
             {
                 x.UseEntityFrameworkCore()
@@ -71,7 +71,7 @@ internal static class Setup
                     .AllowClientCredentialsFlow();
 
                 x.AddSigningKey(key);
-                
+
                 x.SetAuthorizationEndpointUris("connect/authorize")
                     .SetTokenEndpointUris("connect/token")
                     .SetLogoutEndpointUris("connect/logout")
@@ -105,8 +105,12 @@ internal static class Setup
                 x.SetIssuer(tokenSettings.Issuer)
                     .SetConfiguration(new() { Issuer = tokenSettings.Issuer, SigningKeys = { key } })
                     .UseAspNetCore();
-            })
-            .AddClient(x =>
+            });
+
+        var googleSettings = authSettings.Google;
+        if (googleSettings.IsValid())
+        {
+            oidcBuilder.AddClient(x =>
             {
                 x.AllowAuthorizationCodeFlow();
 
@@ -124,14 +128,14 @@ internal static class Setup
                 x.UseWebProviders()
                     .AddGoogle(y =>
                     {
-                        var googleSettings = authSettings.Google;
                         y.SetClientId(googleSettings.ClientId)
                             .SetClientSecret(googleSettings.ClientSecret)
                             .SetRedirectUri(googleSettings.RedirectUri)
                             .AddScopes("email");
                     });
             });
-        
+        }
+
         services.AddAuthentication(AuthSchemes.TokenValidation);
         services.AddAuthorization();
     }

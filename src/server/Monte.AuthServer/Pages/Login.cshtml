@@ -16,5 +16,8 @@
         </div>
         <button class="w-50 btn btn-warning" type="submit" style="border-radius: 10px">Login</button>
     </form>
-    <a class="w-50 btn btn-info" asp-controller="ExternalAuth" asp-action="Google">Login with Google</a>
+    @if (Model.GoogleValid)
+    {
+        <a class="w-50 btn btn-info" asp-controller="ExternalAuth" asp-action="Google">Login with Google</a>
+    }
 </div>

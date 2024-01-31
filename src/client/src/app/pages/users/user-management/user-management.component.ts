@@ -174,7 +174,7 @@ export class UserManagementComponent implements OnDestroy {
   }
 
   private catchAuthError(err: HttpErrorResponse): Observable<null> {
-    if (err.status === 401 || err.status === 403) {
+    if (err.status === 401 || err.status === 403 || err.status === 400) {
       this.router.navigate(['notFound']);
       return of(null);
     }

@@ -15,6 +15,7 @@ export interface AuthUserInfo {
   id: string;
   name: string;
   admin: boolean;
+  external: boolean;
 }
 
 @Injectable({
@@ -99,6 +100,7 @@ export class AuthService {
       id: claims['sub'],
       name: claims['name'],
       admin: claims['role'] === userRoles.admin,
+      external: (claims['is_external'] as String)?.toLowerCase() === 'true'
     };
 
     this._user.next(data);

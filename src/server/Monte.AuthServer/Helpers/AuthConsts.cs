@@ -20,4 +20,9 @@ internal static class AuthConsts
     {
         public const string AllUsers = Roles.MonteAdmin + "," + Roles.MonteUser;
     }
+
+    public static class Claims
+    {
+        public const string IsExternal = "is_external";
+    }
 }

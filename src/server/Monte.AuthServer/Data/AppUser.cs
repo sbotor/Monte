@@ -4,6 +4,8 @@ namespace Monte.AuthServer.Data;
 
 public class AppUser : IdentityUser
 {
+    public bool IsExternal { get; set; }
+    
     public IReadOnlyCollection<AppUserRole> UserRoles { get; set; } = null!;
 }
 

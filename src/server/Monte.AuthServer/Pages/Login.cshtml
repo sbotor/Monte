@@ -4,8 +4,8 @@
 @{
     Layout = "Shared/_Layout";
 }
-<div class="login text-black text-center">
-    <form method="POST">
+<div class="login-form-wrapper text-black text-center">
+    <form method="POST" class="login-form">
         <div class="form-floating mb-3">
             <input asp-for="Username" id="Username" class="form-control" />
             <label for="Username" asp-for="Username">Username</label>
@@ -14,6 +14,7 @@
             <input asp-for="Password" class="form-control" type="password" />
             <label asp-for="Password">Password</label>
         </div>
-        <button class="w-50 btn-warning" type="submit" style="border-radius: 10px">Login</button>
+        <button class="w-50 btn btn-warning" type="submit" style="border-radius: 10px">Login</button>
     </form>
+    <a class="w-50 btn btn-info" asp-controller="ExternalAuth" asp-action="Google">Login with Google</a>
 </div>

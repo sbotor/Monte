@@ -33,7 +33,7 @@ public static class OpenIddictConfig
             ClientId = appSettings.Client.ClientId,
             RedirectUris = { settings.RedirectUri },
             PostLogoutRedirectUris = { settings.RedirectUri },
-            Type = ClientTypes.Public,
+            ClientType = ClientTypes.Public,
             Permissions =
             {
                 Permissions.Endpoints.Authorization,
@@ -61,7 +61,7 @@ public static class OpenIddictConfig
             DisplayName = "Monte Agent",
             ClientId = appSettings.Agent.ClientId,
             ClientSecret = appSettings.Agent.ClientSecret,
-            Type = ClientTypes.Confidential,
+            ClientType = ClientTypes.Confidential,
             Permissions =
             {
                 Permissions.Endpoints.Authorization,
@@ -85,7 +85,7 @@ public static class OpenIddictConfig
             ClientId = "postman",
             ClientSecret = "postman-secret",
             RedirectUris = { new("https://localhost:7049") },
-            Type = ClientTypes.Confidential,
+            ClientType = ClientTypes.Confidential,
             Permissions =
             {
                 Permissions.Endpoints.Authorization,
@@ -109,7 +109,7 @@ public static class OpenIddictConfig
         {
             ClientId = "swagger-ui",
             RedirectUris = { new("https://localhost:7048/swagger/oauth2-redirect.html"), new("https://localhost:7049/swagger/oauth2-redirect.html") },
-            Type = ClientTypes.Public,
+            ClientType = ClientTypes.Public,
             Permissions =
             {
                 Permissions.Endpoints.Authorization,

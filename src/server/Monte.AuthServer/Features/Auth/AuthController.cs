@@ -39,12 +39,21 @@ public class AuthController : ControllerBase
             return LoginRedirect();
         }
 
+        var isExternal = false;
         var result = await HttpContext.AuthenticateAsync(
             AuthSchemes.Cookie);
 
         if (!result.Succeeded)
         {
-            return LoginRedirect();
+            result = await HttpContext.AuthenticateAsync(
+                IdentityConstants.ExternalScheme);
+
+            if (!result.Succeeded)
+            {
+                return LoginRedirect();
+            }
+
+            isExternal = true;
         }
 
         var claims = new Claim[]
@@ -54,7 +63,8 @@ public class AuthController : ControllerBase
             new(Claims.Role,
                 result.Principal.FindFirstValue(Claims.Role)!),
             new(Claims.Name,
-                result.Principal.FindFirstValue(Claims.Name)!)
+                result.Principal.FindFirstValue(Claims.Name)!),
+            new(AuthConsts.Claims.IsExternal, isExternal.ToString())
         };
 
         var identity = new ClaimsIdentity(claims, AuthSchemes.TokenServer);
@@ -66,6 +76,10 @@ public class AuthController : ControllerBase
                 Destinations.AccessToken, Destinations.IdentityToken
             },
             Claims.Role when identity.HasScope(Scopes.Roles) => new[]
+            {
+                Destinations.AccessToken, Destinations.IdentityToken
+            },
+            AuthConsts.Claims.IsExternal => new[]
             {
                 Destinations.AccessToken, Destinations.IdentityToken
             },

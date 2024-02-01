@@ -53,7 +53,7 @@ public class UserService : IUserService
         }
 
         var usr = await _userManager.FindByIdAsync(userId);
-        if (usr is null)
+        if (usr is null || usr.IsExternal)
         {
             return Result.Failure<UserDetails>(ErrorType.NotFound,
                 $"User with the id '{userId}' was not found.");
@@ -96,7 +96,7 @@ public class UserService : IUserService
         }
 
         var usr = await _userManager.FindByIdAsync(userId);
-        if (usr == null)
+        if (usr is null || usr.IsExternal)
         {
             return Result.Failure(ErrorType.NotFound,
                 $"User with the id '{userId}' was not found.");
@@ -118,6 +118,7 @@ public class UserService : IUserService
     {
         var users = await _dbContext.Users.AsNoTracking()
             .Include(x => x.UserRoles).ThenInclude(x => x.Role)
+            .Where(x => !x.IsExternal)
             .OrderBy(x => x.UserName)
             .Select(x => new UserDetails { Id = x.Id, Name = x.UserName ?? "-", Role = x.UserRoles.First().Role.Name! })
             .ToArrayAsync(cancellationToken);
@@ -140,6 +141,7 @@ public class UserService : IUserService
 
         var user = await _dbContext.Users.AsNoTracking()
             .Include(x => x.UserRoles).ThenInclude(x => x.Role)
+            .Where(x => !x.IsExternal)
             .Select(x => new UserDetails { Id = x.Id, Name = x.UserName!, Role = x.UserRoles.First().Role.Name! })
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
@@ -151,7 +153,7 @@ public class UserService : IUserService
     public async Task<Result> DeleteUser(string userId)
     {
         var existingUser = await _userManager.FindByIdAsync(userId);
-        if (existingUser == null)
+        if (existingUser is null || existingUser.IsExternal)
         {
             return Result.Failure(ErrorType.NotFound, $"User with the id '{userId}' was not found.");
         }
@@ -159,6 +161,49 @@ public class UserService : IUserService
         await _userManager.DeleteAsync(existingUser);
 
         return Result.Success();
+    }
+
+    public async Task<Result<UserDetails>> EnsureExternalUserCreated(string username, ExternalUserType type)
+    {
+        var formattedUsername = type.FormatUsername(username);
+
+        var existingUser = await _userManager.FindByNameAsync(formattedUsername);
+        if (existingUser is not null)
+        {
+            return Result.Success(new UserDetails
+            {
+                Id = existingUser.Id, Name = username, Role = AuthConsts.Roles.MonteUser
+            });
+        }
+
+        var user = new AppUser { UserName = formattedUsername, IsExternal = true };
+
+        var result = await _userManager.CreateAsync(user);
+        if (!result.Succeeded)
+        {
+            return Result.Failure<UserDetails>(ErrorType.BadRequest,
+                result.Errors.ToErrorDictionary());
+        }
+
+        try
+        {
+            ThrowIfError(await _userManager.AddToRoleAsync(user, AuthConsts.Roles.MonteUser));
+        }
+        catch (IdentityErrorException e)
+        {
+            await _userManager.DeleteAsync(user);
+            return Result.Failure<UserDetails>(ErrorType.BadRequest, e.Errors);
+        }
+        catch
+        {
+            await _userManager.DeleteAsync(user);
+            throw;
+        }
+
+        return Result.Success(new UserDetails
+        {
+            Id = user.Id, Name = username, Role = AuthConsts.Roles.MonteUser
+        });
     }
 
     private async Task<Result<UserDetails>> CreateUserCore(CreateUserRequest request, string role)
@@ -235,4 +280,5 @@ public interface IUserService
     public Task<Result<UserDetails[]>> GetUsers(CancellationToken cancellationToken = default);
     public Task<Result> DeleteUser(string userId);
     Task<Result<UserDetails>> GetUser(string id, CancellationToken cancellationToken = default);
+    Task<Result<UserDetails>> EnsureExternalUserCreated(string username, ExternalUserType type);
 }

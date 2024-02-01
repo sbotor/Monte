@@ -19,8 +19,6 @@ public class Result
         ErrType = ErrorType.None;
     }
 
-
-
     public static Result Success()
         => SuccessfulResult;
 

@@ -18,19 +18,19 @@ internal static class Setup
             x.UseNpgsql(config.GetConnectionString("Default"));
             x.UseOpenIddict();
         });
-        
+
         services.AddIdentity();
 
         services.ConfigureOpenIddict(config);
-        
+
         services.ConfigureApplicationCookie(x =>
         {
             x.LoginPath = "/Login";
         });
-        
+
         services.Configure<AuthSettings>(config.GetSection(nameof(AuthSettings)));
         services.Configure<OidcAppSettings>(config.GetSection(nameof(OidcAppSettings)));
-        
+
         services.AddHostedService<AuthSetupWorker>();
 
         services.AddScoped<IUserContext, UserContext>();
@@ -49,12 +49,17 @@ internal static class Setup
     private static void ConfigureOpenIddict(this IServiceCollection services,
         IConfiguration config)
     {
-        var settings = config.GetSection(nameof(TokenSettings)).Get<TokenSettings>()
-            ?? throw new InvalidOperationException("Token settings not found.");
-        
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.SigningKey));
-        
-        services.AddOpenIddict()
+        var tokenSettings = config.GetSection(nameof(TokenSettings)).Get<TokenSettings>()
+                            ?? throw new InvalidOperationException("Token settings not found.");
+
+        var authSettings = config.GetSection(nameof(AuthSettings)).Get<AuthSettings>()
+                           ?? throw new InvalidOperationException("Auth settings not found.");
+
+        var allowHttp = bool.TryParse(config["AllowHttp"], out var allowHttpValue) && allowHttpValue;
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenSettings.SigningKey));
+
+        var oidcBuilder = services.AddOpenIddict()
             .AddCore(x =>
             {
                 x.UseEntityFrameworkCore()
@@ -66,13 +71,13 @@ internal static class Setup
                     .AllowClientCredentialsFlow();
 
                 x.AddSigningKey(key);
-                
+
                 x.SetAuthorizationEndpointUris("connect/authorize")
                     .SetTokenEndpointUris("connect/token")
                     .SetLogoutEndpointUris("connect/logout")
                     .SetUserinfoEndpointUris("connect/user-info", "connect/userinfo");
 
-                var lifetimes = settings.Lifetimes;
+                var lifetimes = tokenSettings.Lifetimes;
                 x.SetAuthorizationCodeLifetime(lifetimes.AuthCode)
                     .SetAccessTokenLifetime(lifetimes.AccessToken);
 
@@ -90,18 +95,47 @@ internal static class Setup
                     .EnableTokenEndpointPassthrough()
                     .EnableLogoutEndpointPassthrough();
 
-                if (bool.TryParse(config["AllowHttp"], out var allowHttp) && allowHttp)
+                if (allowHttp)
                 {
                     aspNetCoreBuilder.DisableTransportSecurityRequirement();
                 }
             })
             .AddValidation(x =>
             {
-                x.SetIssuer(settings.Issuer)
-                    .SetConfiguration(new() { Issuer = settings.Issuer, SigningKeys = { key } })
+                x.SetIssuer(tokenSettings.Issuer)
+                    .SetConfiguration(new() { Issuer = tokenSettings.Issuer, SigningKeys = { key } })
                     .UseAspNetCore();
             });
-        
+
+        var googleSettings = authSettings.Google;
+        if (googleSettings.IsValid())
+        {
+            oidcBuilder.AddClient(x =>
+            {
+                x.AllowAuthorizationCodeFlow();
+
+                x.AddDevelopmentEncryptionCertificate()
+                    .AddDevelopmentSigningCertificate();
+
+                var aspNetCoreBuilder = x.UseAspNetCore()
+                    .EnableRedirectionEndpointPassthrough();
+
+                if (allowHttp)
+                {
+                    aspNetCoreBuilder.DisableTransportSecurityRequirement();
+                }
+
+                x.UseWebProviders()
+                    .AddGoogle(y =>
+                    {
+                        y.SetClientId(googleSettings.ClientId)
+                            .SetClientSecret(googleSettings.ClientSecret)
+                            .SetRedirectUri(googleSettings.RedirectUri)
+                            .AddScopes("email");
+                    });
+            });
+        }
+
         services.AddAuthentication(AuthSchemes.TokenValidation);
         services.AddAuthorization();
     }
